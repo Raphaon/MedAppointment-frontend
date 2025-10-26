@@ -35,15 +35,15 @@ export class DoctorService {
     return this.tryGetDoctors(`${this.baseUrl}${this.doctorsEndpoint}/all`, params).pipe(
       catchError((error: HttpErrorResponse) => {
         this.logger.warn('Endpoint /doctors/all indisponible, tentative de fallback', error);
-        
+
         // Si 404, essayer /doctors sans /all
         if (error.status === 404) {
           return this.tryGetDoctors(`${this.baseUrl}${this.doctorsEndpoint}`, params);
         }
-        
+
         return throwError(() => error);
       }),
-      catchError(this.handleError)
+      catchError((error) => this.handleError(error))
     );
   }
 
@@ -84,7 +84,7 @@ export class DoctorService {
     }
 
     return this.http.get<{ profile: DoctorProfile }>(`${this.baseUrl}${this.doctorsEndpoint}/${userId}`).pipe(
-      catchError(this.handleError)
+      catchError((error) => this.handleError(error))
     );
   }
 
@@ -100,7 +100,7 @@ export class DoctorService {
     return this.http.post<{ message: string; profile: DoctorProfile }>(
       `${this.baseUrl}${this.doctorsEndpoint}/profile`,
       data
-    ).pipe(catchError(this.handleError));
+    ).pipe(catchError((error) => this.handleError(error)));
   }
 
   /**
@@ -110,7 +110,7 @@ export class DoctorService {
     return this.http.put<{ message: string; profile: DoctorProfile }>(
       `${this.baseUrl}${this.doctorsEndpoint}/profile`,
       data
-    ).pipe(catchError(this.handleError));
+    ).pipe(catchError((error) => this.handleError(error)));
   }
 
   /**
