@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -20,6 +21,15 @@ import { getMedicalSpecialtyLabel } from '@app/shared/constants/medical.constant
 import { MatListModule } from '@angular/material/list';
 import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
+import { DoctorProfile, MedicalSpecialty } from '@app/core/models';
+import { getMedicalSpecialtyLabel } from '@app/shared/constants/medical.constants';
+=======
+import { Appointment, AppointmentStatus, DoctorProfile, MedicalSpecialty } from '@app/core/models';
+import { getMedicalSpecialtyLabel } from '@app/shared/constants/medical.constants';
+import { MatListModule } from '@angular/material/list';
+import { Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-create-appointment',
@@ -44,12 +54,28 @@ import { debounceTime } from 'rxjs/operators';
   styleUrls: ['./create-appointment.component.scss']
 })
 export class CreateAppointmentComponent implements OnInit, OnDestroy {
+export class CreateAppointmentComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   appointmentForm: FormGroup;
   loading = false;
-  doctors: DoctorProfile[] = [];
-  selectedDoctor: DoctorProfile | null = null;
   minDate = new Date();
   hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8h à 19h
+  private readonly selectedDoctorIdSubject = new BehaviorSubject<string | null>(null);
+  doctors$: Observable<DoctorProfile[]> = this.doctorService.getAllDoctors().pipe(
+    map((response: any) => response.doctors ?? []),
+    catchError(() => {
+      this.snackBar.open('Erreur lors du chargement des médecins', 'Fermer', { duration: 3000 });
+      return of([]);
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+  selectedDoctor$: Observable<DoctorProfile | null> = combineLatest([
+    this.doctors$,
+    this.selectedDoctorIdSubject.asObservable()
+  ]).pipe(
+    map(([doctors, doctorId]) => doctors.find(doctor => doctor.userId === doctorId) ?? null),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
   doctorAppointments: Appointment[] = [];
   conflictingAppointments: Appointment[] = [];
   slotStatus: 'idle' | 'checking' | 'available' | 'conflict' | 'outside-hours' = 'idle';
@@ -77,48 +103,25 @@ export class CreateAppointmentComponent implements OnInit, OnDestroy {
       reason: ['', [Validators.required, Validators.minLength(10)]],
       notes: ['']
     });
+
+    const initialDoctorId = this.appointmentForm.get('doctorId')?.value;
+    this.selectedDoctorIdSubject.next(initialDoctorId || null);
   }
 
   ngOnInit(): void {
-    this.loadDoctors();
-
-    // Pré-sélectionner un médecin si passé en paramètre
-    this.route.queryParams.subscribe((params: any) => {
-      if (params['doctorId']) {
-        this.appointmentForm.patchValue({ doctorId: params['doctorId'] });
-      }
-    });
-
-    this.observeFormChanges();
-  }
-
-  ngOnDestroy(): void {
-    this.formChangesSub?.unsubscribe();
-  }
-
-  loadDoctors(): void {
-    this.doctorService.getAllDoctors().subscribe({
-      next: (response: any) => {
-        this.doctors = response.doctors;
-        
-        // Si un doctorId est pré-sélectionné, charger ses infos
-        const preselectedDoctorId = this.appointmentForm.get('doctorId')?.value;
-        if (preselectedDoctorId) {
-          this.selectedDoctor = this.doctors.find((d: any) => d.userId === preselectedDoctorId) || null;
-          this.fetchDoctorAppointmentsForSelectedDay();
+    this.route.queryParams
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params: any) => {
+        if (params['doctorId']) {
+          this.appointmentForm.patchValue({ doctorId: params['doctorId'] })
         }
-      },
-      error: (error: any) => {
-        this.snackBar.open('Erreur lors du chargement des médecins', 'Fermer', { duration: 3000 });
-      }
-    });
-  }
+      });
 
-  onDoctorChange(event: any): void {
-    this.selectedDoctor = this.doctors.find((d: any) => d.userId === event.value) || null;
-    this.availabilityKey = null;
-    this.fetchDoctorAppointmentsForSelectedDay();
-    this.evaluateSlot();
+    this.appointmentForm.get('doctorId')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((doctorId: string) => {
+        this.selectedDoctorIdSubject.next(doctorId || null);
+      });
   }
 
   getSpecialtyLabel(specialty: MedicalSpecialty): string {
@@ -168,7 +171,125 @@ export class CreateAppointmentComponent implements OnInit, OnDestroy {
       this.snackBar.open('Ce créneau est déjà réservé. Veuillez choisir une autre heure.', 'Fermer', { duration: 4000 });
     } else if (this.slotStatus === 'outside-hours') {
       this.snackBar.open('Le créneau sélectionné dépasse les horaires disponibles du médecin.', 'Fermer', { duration: 4000 });
+
     }
+
+    const day = new Date(date);
+    const key = `${doctorId}_${day.toDateString()}`;
+    if (this.availabilityKey === key) {
+      return;
+    }
+
+    this.availabilityKey = key;
+    const startOfDay = new Date(day);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(day);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    this.availabilityLoading = true;
+    this.slotStatus = 'checking';
+    this.slotMessage = 'Vérification de la disponibilité du médecin...';
+
+    this.appointmentService.getDoctorAppointments(
+      doctorId,
+      startOfDay.toISOString(),
+      endOfDay.toISOString()
+    ).subscribe({
+      next: (response) => {
+        this.doctorAppointments = response.appointments || [];
+        this.availabilityLoading = false;
+        this.evaluateSlot();
+      },
+      error: () => {
+        this.availabilityLoading = false;
+        this.doctorAppointments = [];
+        this.availabilityKey = null;
+        this.slotStatus = 'idle';
+        this.slotMessage = '';
+        this.snackBar.open('Impossible de vérifier la disponibilité du médecin.', 'Fermer', { duration: 4000 });
+      }
+    });
+  }
+
+  private evaluateSlot(): void {
+    const doctorId = this.appointmentForm.get('doctorId')?.value;
+    const date = this.appointmentForm.get('appointmentDate')?.value;
+    const hour = this.appointmentForm.get('hour')?.value;
+    const minute = this.appointmentForm.get('minute')?.value;
+    const duration = Number(this.appointmentForm.get('duration')?.value || 0);
+
+    if (!doctorId || !date || !hour || minute === null || duration <= 0) {
+      this.slotStatus = 'idle';
+      this.slotMessage = '';
+      this.conflictingAppointments = [];
+      return;
+    }
+
+    const start = new Date(date);
+    start.setHours(parseInt(hour, 10), parseInt(minute, 10), 0, 0);
+    const end = new Date(start.getTime() + duration * 60000);
+
+    if (this.availabilityLoading) {
+      this.slotStatus = 'checking';
+      this.slotMessage = 'Vérification de la disponibilité du médecin...';
+      this.conflictingAppointments = [];
+      return;
+    }
+
+    if (!this.isWithinDoctorHours(start, end)) {
+      this.slotStatus = 'outside-hours';
+      this.slotMessage = 'Le créneau choisi dépasse les horaires disponibles du médecin.';
+      this.conflictingAppointments = [];
+      return;
+    }
+
+    const conflicts = this.getConflictingAppointments(start, end);
+    this.conflictingAppointments = conflicts;
+
+    if (conflicts.length > 0) {
+      this.slotStatus = 'conflict';
+      this.slotMessage = 'Ce créneau est déjà réservé par un autre rendez-vous.';
+    } else {
+      this.slotStatus = 'available';
+      this.slotMessage = 'Créneau disponible ✅';
+    }
+  }
+
+  private isWithinDoctorHours(start: Date, end: Date): boolean {
+    if (!this.selectedDoctor?.availableFrom || !this.selectedDoctor?.availableTo) {
+      return true;
+    }
+
+    const availabilityStart = this.buildDateFromTime(start, this.selectedDoctor.availableFrom);
+    const availabilityEnd = this.buildDateFromTime(start, this.selectedDoctor.availableTo);
+
+    if (availabilityEnd <= availabilityStart) {
+      availabilityEnd.setDate(availabilityEnd.getDate() + 1);
+    }
+
+    return start >= availabilityStart && end <= availabilityEnd;
+  }
+
+  private buildDateFromTime(base: Date, time: string): Date {
+    const [hourString, minuteString] = time.split(':');
+    const hours = parseInt(hourString, 10);
+    const minutes = parseInt(minuteString || '0', 10);
+    const date = new Date(base);
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  }
+
+  private getConflictingAppointments(start: Date, end: Date): Appointment[] {
+    return this.doctorAppointments.filter((appointment: Appointment) => {
+      if (appointment.status === AppointmentStatus.CANCELLED) {
+        return false;
+      }
+
+      const existingStart = new Date(appointment.appointmentDate);
+      const duration = appointment.duration && appointment.duration > 0 ? appointment.duration : 30;
+      const existingEnd = new Date(existingStart.getTime() + duration * 60000);
+      return existingStart < end && existingEnd > start;
+    });
   }
 
   get submitDisabled(): boolean {

@@ -38,6 +38,14 @@ export class AuthService {
       );
   }
 
+  requestPasswordReset(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/reset-password`, { token, password });
+  }
+
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

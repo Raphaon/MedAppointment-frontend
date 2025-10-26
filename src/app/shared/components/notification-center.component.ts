@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,10 +7,13 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { NotificationService, Notification } from '@app/core/services/notification.service';
+import { Observable } from 'rxjs';
+
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { take } from 'rxjs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+
 
 @Component({
   selector: 'app-notification-center',
@@ -26,11 +29,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatDialogModule,
     ConfirmDialogComponent,
     MatTooltipModule
+
   ],
   template: `
-    <button mat-icon-button [matMenuTriggerFor]="notificationMenu" 
-            [matBadge]="unreadCount" 
-            [matBadgeHidden]="unreadCount === 0"
+    <button mat-icon-button [matMenuTriggerFor]="notificationMenu"
+            [matBadge]="(unreadCount$ | async) ?? 0"
+            [matBadgeHidden]="(unreadCount$ | async) === 0"
             matBadgeColor="warn">
       <mat-icon>notifications</mat-icon>
     </button>
@@ -48,17 +52,19 @@ import { MatTooltipModule } from '@angular/material/tooltip';
           <button mat-icon-button (click)="sync()" [disabled]="isSyncing" matTooltip="Synchroniser">
             <mat-icon [class.spin]="isSyncing">refresh</mat-icon>
           </button>
+
           <button mat-button (click)="markAllAsRead()" *ngIf="unreadCount > 0">
             <mat-icon>done_all</mat-icon>
             Tout marquer lu
           </button>
         </div>
+
       </div>
 
       <mat-divider></mat-divider>
 
-      <div class="notifications-list" *ngIf="notifications.length > 0">
-        <div *ngFor="let notification of notifications" 
+      <div class="notifications-list" *ngIf="notifications$ | async as notifications; else noNotifications">
+        <div *ngFor="let notification of notifications"
              class="notification-item"
              [class.unread]="!notification.read"
              [class.info]="notification.type === 'info'"
@@ -85,14 +91,16 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         </div>
       </div>
 
-      <div class="no-notifications" *ngIf="notifications.length === 0">
-        <mat-icon>notifications_none</mat-icon>
-        <p>Aucune notification</p>
-      </div>
+      <ng-template #noNotifications>
+        <div class="no-notifications">
+          <mat-icon>notifications_none</mat-icon>
+          <p>Aucune notification</p>
+        </div>
+      </ng-template>
 
-      <mat-divider *ngIf="notifications.length > 0"></mat-divider>
+      <mat-divider *ngIf="(notifications$ | async)?.length"></mat-divider>
 
-      <div class="notification-footer" *ngIf="notifications.length > 0" (click)="$event.stopPropagation()">
+      <div class="notification-footer" *ngIf="(notifications$ | async)?.length" (click)="$event.stopPropagation()">
         <button mat-button color="warn" (click)="clearAll()">
           <mat-icon>delete_sweep</mat-icon>
           Tout supprimer
@@ -292,6 +300,7 @@ export class NotificationCenterComponent implements OnInit {
   isSyncing = false;
   realtimeConnected = false;
 
+
   constructor(
     private notificationService: NotificationService,
     private dialog: MatDialog
@@ -314,6 +323,7 @@ export class NotificationCenterComponent implements OnInit {
       this.realtimeConnected = connected;
     });
   }
+
 
   getIcon(type: string): string {
     const icons: any = {

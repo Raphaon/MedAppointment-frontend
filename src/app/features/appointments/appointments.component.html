@@ -118,13 +118,6 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>Actions</th>
         <td mat-cell *matCellDef="let appointment">
-          <button mat-icon-button color="primary"
-                  matTooltip="Ouvrir la consultation en ligne"
-                  (click)="startConsultation(appointment)"
-                  [disabled]="startingConsultations.has(appointment.id)"
-                  *ngIf="canStartConsultation(appointment)">
-            <mat-icon>video_call</mat-icon>
-          </button>
           <button mat-icon-button color="warn"
                   matTooltip="Annuler ce rendez-vous"
                   (click)="cancelAppointment(appointment.id)"

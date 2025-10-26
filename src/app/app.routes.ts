@@ -14,6 +14,14 @@ export const routes: Routes = [
       {
         path: 'register',
         loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent)
+      },
+      {
+        path: 'forgot-password',
+        loadComponent: () => import('./features/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
+      },
+      {
+        path: 'reset-password/:token',
+        loadComponent: () => import('./features/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
       }
     ]
   },
@@ -21,6 +29,12 @@ export const routes: Routes = [
     path: 'dashboard',
     loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'calendar',
+    loadComponent: () => import('./features/calendar/calendar.component').then(m => m.CalendarComponent),
+    canActivate: [AuthGuard],
+    data: { roles: [UserRole.DOCTOR] }
   },
   {
     path: 'appointments',
@@ -39,6 +53,11 @@ export const routes: Routes = [
   {
     path: 'doctors',
     loadComponent: () => import('./features/doctors/doctors-list.component').then(m => m.DoctorsListComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'doctors/search',
+    loadComponent: () => import('./features/search/search-doctors.component').then(m => m.SearchDoctorsComponent),
     canActivate: [AuthGuard]
   },
   {
