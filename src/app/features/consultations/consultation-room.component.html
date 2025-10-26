@@ -1,0 +1,107 @@
+<div class="room-container" *ngIf="!loading && consultation; else loadingState">
+  <div class="room-header">
+    <button mat-button type="button" (click)="leaveRoom()">
+      <mat-icon>arrow_back</mat-icon>
+      Retour aux consultations
+    </button>
+    <div class="header-details">
+      <h1>Consultation avec {{ consultation.patient?.firstName }} {{ consultation.patient?.lastName }}</h1>
+      <div class="meta">
+        <mat-chip [color]="statusChipColor" selected>{{ consultation.status | titlecase }}</mat-chip>
+        <span>Créée le {{ consultation.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        <span>Durée prévue: {{ consultation.appointment?.duration || 30 }} min</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="room-body">
+    <div class="video-area">
+      <div class="video-stream local" matTooltip="Flux du médecin">
+        <div class="status" [class.online]="doctorOnline">{{ doctorOnline ? 'Vous êtes en ligne' : 'Hors ligne' }}</div>
+        <div class="video-placeholder">
+          <mat-icon>videocam</mat-icon>
+          <span>Caméra médecin</span>
+        </div>
+      </div>
+      <div class="video-stream remote" matTooltip="Flux du patient">
+        <div class="status" [class.online]="patientOnline">
+          {{ patientOnline ? 'Patient connecté' : 'En attente du patient' }}
+        </div>
+        <div class="video-placeholder">
+          <mat-icon>person</mat-icon>
+          <span>Caméra patient</span>
+        </div>
+      </div>
+
+      <div class="room-actions">
+        <button mat-raised-button color="primary" type="button" (click)="startConsultation()"
+                *ngIf="consultation.status !== ConsultationStatus.IN_PROGRESS && consultation.status !== ConsultationStatus.COMPLETED">
+          <mat-icon>play_arrow</mat-icon>
+          Démarrer la consultation
+        </button>
+        <button mat-stroked-button type="button" (click)="toggleSummaryForm()"
+                [disabled]="consultation.status !== ConsultationStatus.IN_PROGRESS">
+          <mat-icon>assignment</mat-icon>
+          Rédiger le compte rendu
+        </button>
+        <a class="room-link" *ngIf="roomUrl" [href]="roomUrl" target="_blank" rel="noopener">
+          <mat-icon>open_in_new</mat-icon>
+          Ouvrir la salle dans une nouvelle fenêtre
+        </a>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <mat-card>
+        <mat-card-title>Informations patient</mat-card-title>
+        <mat-card-content>
+          <p><strong>Nom :</strong> {{ consultation.patient?.firstName }} {{ consultation.patient?.lastName }}</p>
+          <p><strong>Motif :</strong> {{ consultation.appointment?.reason }}</p>
+          <p><strong>Notes :</strong> {{ consultation.appointment?.notes || '—' }}</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-title>Journal de session</mat-card-title>
+        <mat-card-content class="events-log">
+          <div class="event" *ngFor="let event of events">
+            <span class="time">{{ event.timestamp | date:'HH:mm:ss' }}</span>
+            <span class="description">{{ describeEvent(event) }}</span>
+          </div>
+          <p *ngIf="events.length === 0" class="empty">En attente d'activité...</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card *ngIf="consultation.summary">
+        <mat-card-title>Compte rendu</mat-card-title>
+        <mat-card-content>
+          <p>{{ consultation.summary }}</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card *ngIf="consultation.prescriptionUrl">
+        <mat-card-title>Prescription</mat-card-title>
+        <mat-card-content>
+          <a [href]="consultation.prescriptionUrl" target="_blank" rel="noopener">Télécharger l'ordonnance</a>
+        </mat-card-content>
+      </mat-card>
+    </aside>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <section class="summary-section" *ngIf="showSummaryForm">
+    <app-consultation-summary
+      [consultation]="consultation"
+      (submitSummary)="handleSummarySubmit($event)"
+      (cancel)="handleSummaryCancel()"
+    ></app-consultation-summary>
+  </section>
+</div>
+
+<ng-template #loadingState>
+  <div class="loading-state">
+    <mat-spinner diameter="56"></mat-spinner>
+    <p>Ouverture de la salle de consultation...</p>
+  </div>
+</ng-template>

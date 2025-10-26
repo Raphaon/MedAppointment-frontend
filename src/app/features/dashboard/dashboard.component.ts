@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { Component, DestroyRef, inject } from '@angular/core';
-=======
 import { ChangeDetectionStrategy, Component } from '@angular/core';
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -11,17 +7,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
-<<<<<<< HEAD
-import { AuthService } from '@app/core/services/auth.service';
-import { NotificationCenterComponent } from '@app/shared/components/notification-center.component';
-import { User, UserRole, Appointment, AppointmentStatus } from '@app/core/models';
-<<<<<<< HEAD
-import { StatCardComponent } from '@app/shared/components/stat-card/stat-card.component';
-import { UserService } from '@app/core/services/user.service';
-import { DoctorService } from '@app/core/services/doctor.service';
-import { forkJoin } from 'rxjs';
-<<<<<<< HEAD
-=======
 import { Observable, catchError, forkJoin, map, of, shareReplay, switchMap } from 'rxjs';
 import { AppointmentService } from '@app/core/services/appointment.service';
 import { AuthService } from '@app/core/services/auth.service';
@@ -29,9 +14,7 @@ import { NotificationCenterComponent } from '@app/shared/components/notification
 import { Appointment, AppointmentStatus, DoctorProfile, MedicalSpecialty, User, UserRole } from '@app/core/models';
 import { DoctorService } from '@app/core/services/doctor.service';
 import { UserService } from '@app/core/services/user.service';
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
-=======
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
 
 interface StatCard {
   title: string;
@@ -82,7 +65,7 @@ interface DashboardViewModel {
 =======
 import { DashboardState, StatCard } from './dashboard.state';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
+
 
 @Component({
   selector: 'app-dashboard',
@@ -99,10 +82,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     NotificationCenterComponent,
     StatCardComponent
   ],
-<<<<<<< HEAD
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
-=======
   template: `
     <div class="dashboard-layout" *ngIf="viewModel$ | async as vm">
       <mat-toolbar color="primary" class="toolbar">
@@ -131,28 +110,15 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
           </button>
         </mat-menu>
       </mat-toolbar>
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
 
-<<<<<<< HEAD
-=======
       <div class="dashboard-content">
         <div class="welcome-section">
           <h1>👋 Bienvenue, {{ vm.user.firstName }} !</h1>
           <p class="subtitle">{{ getWelcomeMessage(vm.user.role) }}</p>
         </div>
 
-<<<<<<< HEAD
-        <!-- Statistiques -->
-        <div class="stats-grid" *ngIf="stats$ | async as stats">
-          <mat-card *ngFor="let stat of stats; trackBy: trackByStat"
-                    class="stat-card"
-                    [style.border-left-color]="stat.color"
-                    [routerLink]="stat.route"
-                    [class.clickable]="stat.route">
-=======
         <div class="stats-grid">
           <mat-card *ngFor="let stat of vm.stats; trackBy: trackByStat" class="stat-card" [style.border-left-color]="stat.color" [routerLink]="stat.route" [class.clickable]="!!stat.route">
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
             <mat-card-content>
               <div class="stat-header">
                 <mat-icon [style.color]="stat.color">{{ stat.icon }}</mat-icon>
@@ -255,35 +221,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
               </div>
             </mat-card>
 
-<<<<<<< HEAD
-        <!-- Prochains RDV -->
-        <ng-container *ngIf="upcomingAppointments$ | async as upcomingAppointments">
-          <div class="upcoming-section" *ngIf="upcomingAppointments.length > 0">
-            <h2>📅 Prochains rendez-vous</h2>
-            <div class="appointments-list">
-              <mat-card *ngFor="let appointment of upcomingAppointments; trackBy: trackByAppointment" class="appointment-card">
-                <div class="appointment-date">
-                  <div class="day">{{ getDay(appointment.appointmentDate) }}</div>
-                  <div class="month">{{ getMonth(appointment.appointmentDate) }}</div>
-                </div>
-                <div class="appointment-details">
-                  <h3>{{ getAppointmentTitle(appointment) }}</h3>
-                  <p class="time">
-                    <mat-icon>schedule</mat-icon>
-                    {{ getTime(appointment.appointmentDate) }}
-                  </p>
-                  <p class="reason">{{ appointment.reason }}</p>
-                </div>
-                <div class="appointment-status">
-                  <span class="status-badge" [class]="appointment.status.toLowerCase()">
-                    {{ getStatusLabel(appointment.status) }}
-                  </span>
-                </div>
-              </mat-card>
-            </div>
-          </div>
-        </ng-container>
-=======
             <mat-card class="insight-card">
               <h3>Taux de présence</h3>
               <p class="insight-highlight">{{ doctor.presenceRate | percent:'1.0-1':'fr-FR' }}</p>
@@ -431,7 +368,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
             </mat-card-content>
           </mat-card>
         </div>
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
       </div>
     </div>
   `,
@@ -630,7 +566,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
         gap: 12px;
       }
     }
-<<<<<<< HEAD
+
 
     .appointment-details h3 {
       margin: 0 0 8px 0;
@@ -681,23 +617,17 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
       color: #721c24;
     }
   `]
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
+
 })
 export class DashboardComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   currentUser: User | null = this.authService.getCurrentUser();
   UserRole = UserRole;
-<<<<<<< HEAD
-  stats: StatCard[] = [];
-  upcomingAppointments: Appointment[] = [];
-<<<<<<< HEAD
-  private adminStatsLoaded = false;
-=======
   statusBreakdown: { status: AppointmentStatus; label: string; count: number }[] = [];
   adminHighlights: { label: string; value: string; description?: string }[] = [];
   adminTrends: { period: string; total: number; delta: number; confirmed: number }[] = [];
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
 
   constructor(
     private authService: AuthService,
@@ -717,8 +647,6 @@ export class DashboardComponent {
   }
 
   private loadDashboardData(): void {
-<<<<<<< HEAD
-=======
     if (!this.currentUser) {
       return;
     }
@@ -728,17 +656,14 @@ export class DashboardComponent {
       return;
     }
 
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
     this.appointmentService.getMyAppointments().subscribe({
       next: (response: any) => {
         const appointments = response.appointments || [];
         this.upcomingAppointments = this.extractUpcomingAppointments(appointments);
-<<<<<<< HEAD
-=======
         this.statusBreakdown = [];
         this.adminHighlights = [];
         this.adminTrends = [];
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
         this.buildStats(appointments);
       },
       error: (error: any) => {
@@ -747,8 +672,6 @@ export class DashboardComponent {
     });
   }
 
-<<<<<<< HEAD
-=======
   private loadAdminDashboard(): void {
     this.statusBreakdown = [];
     this.adminHighlights = [];
@@ -795,10 +718,37 @@ export class DashboardComponent {
       error: (error) => {
         console.error('Erreur lors du chargement des indicateurs administrateur:', error);
       }
+    ];
+  }
+
+  private buildAdminTrends(appointments: Appointment[]): { period: string; total: number; delta: number; confirmed: number }[] {
+    const trends: { period: string; total: number; delta: number; confirmed: number }[] = [];
+    const reference = new Date();
+
+    for (let weekOffset = 0; weekOffset < 5; weekOffset++) {
+      const start = this.startOfWeek(reference, weekOffset);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+
+      const weeklyAppointments = appointments.filter((appointment) => {
+        const appointmentDate = new Date(appointment.appointmentDate);
+        return appointmentDate >= start && appointmentDate <= end;
+      });
+
+      const period = `${start.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })} → ${end.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}`;
+      const confirmed = weeklyAppointments.filter((appointment) => appointment.status === AppointmentStatus.CONFIRMED).length;
+
+      trends.push({ period, total: weeklyAppointments.length, confirmed, delta: 0 });
+    }
+
+    return trends.map((trend, index) => {
+      const previous = trends[index + 1];
+      const delta = previous ? trend.total - previous.total : 0;
+      return { ...trend, delta };
     });
   }
 
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
   private extractUpcomingAppointments(appointments: Appointment[]): Appointment[] {
     const now = new Date();
 
@@ -876,62 +826,6 @@ export class DashboardComponent {
     }
 
     if (this.currentUser.role === UserRole.ADMIN) {
-<<<<<<< HEAD
-      this.stats = [
-        {
-          title: 'Total rendez-vous',
-          value: appointments.length,
-          icon: 'event',
-          color: '#4caf50',
-          route: '/appointments'
-        },
-        {
-          title: 'Utilisateurs',
-          value: 0,
-          icon: 'people',
-          color: '#2196f3',
-          route: '/users'
-        },
-        {
-          title: 'Médecins actifs',
-          value: 0,
-          icon: 'local_hospital',
-          color: '#ff9800',
-          route: '/doctors'
-        }
-      ];
-      this.loadAdminMetrics();
-    }
-  }
-
-  private loadAdminMetrics(): void {
-    if (this.adminStatsLoaded) {
-      return;
-    }
-
-    this.adminStatsLoaded = true;
-
-    forkJoin({
-      users: this.userService.getAllUsers(),
-      doctors: this.doctorService.getAllDoctors()
-    }).subscribe({
-      next: ({ users, doctors }) => {
-        this.stats = this.stats.map((stat) => {
-          if (stat.title === 'Utilisateurs') {
-            return { ...stat, value: users.count ?? users.users.length };
-          }
-          if (stat.title === 'Médecins actifs') {
-            return { ...stat, value: doctors.count ?? doctors.doctors.length };
-          }
-          return stat;
-        });
-      },
-      error: (error) => {
-        console.error('Erreur lors du chargement des indicateurs administrateur:', error);
-        this.adminStatsLoaded = false;
-      }
-    });
-=======
   stats$ = this.dashboardState.stats$;
   upcomingAppointments$ = this.dashboardState.upcomingAppointments$;
 
@@ -945,8 +839,6 @@ export class DashboardComponent {
       .subscribe((user: User | null) => {
         this.currentUser = user;
       });
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
-=======
       return;
     }
   }
@@ -1034,6 +926,7 @@ export class DashboardComponent {
     });
   }
 
+
   private countUpcomingWithin(appointments: Appointment[], daysAhead: number): number {
     const now = new Date();
     const limit = new Date();
@@ -1053,7 +946,7 @@ export class DashboardComponent {
     const diff = (day + 6) % 7; // Lundi comme début de semaine
     date.setDate(date.getDate() - diff - weeksAgo * 7);
     return date;
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
   }
 
   getRoleLabel(): string {
@@ -1079,7 +972,7 @@ export class DashboardComponent {
       return `Dr. ${appointment.doctor?.firstName} ${appointment.doctor?.lastName}`;
     } else {
       return `${appointment.patient?.firstName} ${appointment.patient?.lastName}`;
-=======
+
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -1145,7 +1038,7 @@ export class DashboardComponent {
         return 'Patient';
       default:
         return 'Utilisateur';
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
+
     }
   }
 
@@ -1203,14 +1096,6 @@ export class DashboardComponent {
     }
   }
 
-<<<<<<< HEAD
-  trackByStat(_index: number, stat: StatCard): string {
-    return stat.title;
-  }
-
-  trackByAppointment(_index: number, appointment: Appointment): string {
-    return appointment.id || appointment.appointmentDate;
-=======
   private buildViewModel(user: User): Observable<Omit<DashboardViewModel, 'user'>> {
     if (user.role === UserRole.ADMIN) {
       return forkJoin({
@@ -1444,7 +1329,6 @@ export class DashboardComponent {
 
     const max = points.reduce((acc, point) => Math.max(acc, point.value), 0);
     return { points, max };
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
   }
 
   private buildMonthlyTrend(appointments: Appointment[], months: number) {

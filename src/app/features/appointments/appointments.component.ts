@@ -1,11 +1,6 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { Component, DestroyRef, inject } from '@angular/core';
-=======
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
 =======
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -15,19 +10,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { AppointmentService } from '@app/core/services/appointment.service';
-import { Appointment, AppointmentStatus } from '@app/core/models';
-<<<<<<< HEAD
-import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
-import { take } from 'rxjs';
-=======
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, Subject, catchError, map, of, shareReplay, startWith, switchMap } from 'rxjs';
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
-=======
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -41,8 +25,7 @@ import { Inject } from '@angular/core';
 import { AppointmentService } from '@app/core/services/appointment.service';
 import { AuthService } from '@app/core/services/auth.service';
 import { Appointment, AppointmentStatus, User, UserRole } from '@app/core/models';
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
-=======
+
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -60,7 +43,7 @@ import { Appointment, AppointmentStatus } from '@app/core/models';
 import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
 import { take, debounceTime } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
 
 @Component({
   selector: 'app-appointments',
@@ -69,20 +52,13 @@ import { Subscription } from 'rxjs';
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-<<<<<<< HEAD
-=======
     MatCardModule,
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
     MatTableModule,
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
     MatSnackBarModule,
     MatDialogModule,
-<<<<<<< HEAD
-<<<<<<< HEAD
-    ConfirmDialogComponent
-=======
     MatMenuModule,
     MatTooltipModule,
     MatSelectModule,
@@ -90,7 +66,6 @@ import { Subscription } from 'rxjs';
     MatInputModule,
     MatDatepickerModule,
     MatNativeDateModule
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
   ],
   template: `
     <div class="appointments-container">
@@ -120,17 +95,6 @@ import { Subscription } from 'rxjs';
         </div>
       </div>
 
-<<<<<<< HEAD
-      <ng-container *ngIf="appointments$ | async as appointments">
-        <div class="appointments-list" *ngIf="appointments.length > 0; else noAppointments">
-          <table mat-table [dataSource]="appointments" class="mat-elevation-z2">
-            <ng-container matColumnDef="date">
-              <th mat-header-cell *matHeaderCellDef>Date</th>
-              <td mat-cell *matCellDef="let appointment">
-                {{ appointment.appointmentDate | date:'dd/MM/yyyy HH:mm' }}
-              </td>
-            </ng-container>
-=======
       <div class="loading" *ngIf="loading">
         <mat-icon>hourglass_empty</mat-icon>
         <p>Chargement des rendez-vous...</p>
@@ -148,7 +112,6 @@ import { Subscription } from 'rxjs';
               </div>
             </td>
           </ng-container>
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
 
             <ng-container matColumnDef="doctor">
               <th mat-header-cell *matHeaderCellDef>Médecin</th>
@@ -164,32 +127,6 @@ import { Subscription } from 'rxjs';
               </td>
             </ng-container>
 
-<<<<<<< HEAD
-            <ng-container matColumnDef="reason">
-              <th mat-header-cell *matHeaderCellDef>Motif</th>
-              <td mat-cell *matCellDef="let appointment">{{ appointment.reason }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Statut</th>
-              <td mat-cell *matCellDef="let appointment">
-                <mat-chip [color]="getStatusColor(appointment.status)" selected>
-                  {{ getStatusLabel(appointment.status) }}
-                </mat-chip>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let appointment">
-                <button mat-icon-button color="warn"
-                        (click)="cancelAppointment(appointment.id)"
-                        *ngIf="appointment.status !== 'CANCELLED'">
-                  <mat-icon>cancel</mat-icon>
-                </button>
-              </td>
-            </ng-container>
-=======
           <ng-container matColumnDef="reason">
             <th mat-header-cell *matHeaderCellDef>Motif</th>
             <td mat-cell *matCellDef="let appointment">
@@ -245,7 +182,6 @@ import { Subscription } from 'rxjs';
               </mat-menu>
             </td>
           </ng-container>
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
@@ -253,17 +189,10 @@ import { Subscription } from 'rxjs';
         </div>
       </ng-container>
 
-<<<<<<< HEAD
-      <ng-template #noAppointments>
-        <div class="no-data">
-          <mat-icon>event_busy</mat-icon>
-          <p>Aucun rendez-vous trouvé</p>
-=======
       <ng-template #emptyState>
         <div class="no-data">
           <mat-icon>event_busy</mat-icon>
           <p>Aucun rendez-vous trouvé pour ce filtre.</p>
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
         </div>
       </ng-template>
     </div>
@@ -309,9 +238,8 @@ import { Subscription } from 'rxjs';
       overflow: hidden;
     }
 
-    table {
-      width: 100%;
-    }
+
+  AppointmentStatus = AppointmentStatus;
 
     th {
       text-transform: uppercase;
@@ -401,26 +329,6 @@ import { Subscription } from 'rxjs';
     }
   `]
 })
-<<<<<<< HEAD
-export class AppointmentsComponent {
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly refreshSubject = new Subject<void>();
-
-  displayedColumns: string[] = ['date', 'doctor', 'patient', 'reason', 'status', 'actions'];
-  appointments$: Observable<Appointment[]> = this.refreshSubject.pipe(
-    startWith(void 0),
-    switchMap(() =>
-      this.appointmentService.getMyAppointments().pipe(
-        map(response => response.appointments ?? []),
-        catchError(() => {
-          this.snackBar.open('Erreur lors du chargement des rendez-vous', 'Fermer', { duration: 3000 });
-          return of([]);
-        })
-      )
-    ),
-    shareReplay({ bufferSize: 1, refCount: true })
-  );
-=======
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
@@ -456,33 +364,10 @@ export class AppointmentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
 
   constructor(
     private appointmentService: AppointmentService,
     private snackBar: MatSnackBar,
-<<<<<<< HEAD
-    private dialog: MatDialog
-  ) {}
-
-  cancelAppointment(id: string): void {
-<<<<<<< HEAD
-    this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Annuler le rendez-vous',
-        message: 'Voulez-vous vraiment annuler ce rendez-vous ?',
-        confirmLabel: 'Annuler le rendez-vous',
-        icon: 'event_busy'
-      },
-      autoFocus: false,
-      restoreFocus: false
-    }).afterClosed().pipe(take(1)).subscribe((confirmed) => {
-      if (confirmed) {
-        this.appointmentService.cancelAppointment(id).subscribe({
-          next: () => {
-            this.snackBar.open('Rendez-vous annulé', 'Fermer', { duration: 3000 });
-            this.loadAppointments();
-=======
     if (confirm('Voulez-vous vraiment annuler ce rendez-vous ?')) {
       this.appointmentService.cancelAppointment(id)
         .pipe(takeUntilDestroyed(this.destroyRef))
@@ -490,19 +375,12 @@ export class AppointmentsComponent implements OnInit, AfterViewInit, OnDestroy {
           next: () => {
             this.snackBar.open('Rendez-vous annulé', 'Fermer', { duration: 3000 });
             this.refreshSubject.next();
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
           },
           error: () => {
             this.snackBar.open('Erreur lors de l\'annulation', 'Fermer', { duration: 3000 });
           }
         });
-<<<<<<< HEAD
-      }
-    });
-=======
     }
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
-=======
 export class AppointmentsComponent implements OnInit {
   appointments: Appointment[] = [];
   filteredAppointments: Appointment[] = [];
@@ -522,7 +400,7 @@ export class AppointmentsComponent implements OnInit {
     private readonly dialog: MatDialog,
     private readonly authService: AuthService
   ) {}
-=======
+
     private dialog: MatDialog,
     private fb: FormBuilder
   ) {
@@ -552,7 +430,7 @@ export class AppointmentsComponent implements OnInit {
       }
     };
   }
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
@@ -578,9 +456,6 @@ export class AppointmentsComponent implements OnInit {
     this.filterSub?.unsubscribe();
   }
 
-<<<<<<< HEAD
-  trackByAppointment(index: number, appointment: Appointment): string {
-    return appointment.id;
   }
 
   loadAppointments(): void {
@@ -689,7 +564,6 @@ export class AppointmentsComponent implements OnInit {
         },
         error: () => {
           this.snackBar.open('Impossible de mettre à jour le statut', 'Fermer', { duration: 4000 });
-=======
   loadAppointments(): void {
     this.loading = true;
     this.appointmentService.getMyAppointments().subscribe({
@@ -720,7 +594,6 @@ export class AppointmentsComponent implements OnInit {
         const appointmentDate = new Date(appointment.appointmentDate);
         if (start && appointmentDate < start) {
           return false;
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
         }
         if (end) {
           const inclusiveEnd = new Date(end);
@@ -731,13 +604,10 @@ export class AppointmentsComponent implements OnInit {
         }
         return true;
       });
-<<<<<<< HEAD
->>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
   }
 
   getStatusLabel(status: AppointmentStatus): string {
     const labels: Record<AppointmentStatus, string> = {
-=======
     }
 
     if (search) {
@@ -834,16 +704,12 @@ export class AppointmentsComponent implements OnInit {
 
   getStatusLabel(status: AppointmentStatus): string {
     const labels = {
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
       [AppointmentStatus.PENDING]: 'En attente',
       [AppointmentStatus.CONFIRMED]: 'Confirmé',
       [AppointmentStatus.CANCELLED]: 'Annulé',
       [AppointmentStatus.COMPLETED]: 'Terminé',
       [AppointmentStatus.NO_SHOW]: 'Absence'
-<<<<<<< HEAD
-    };
-
-    return labels[status];
   }
 
   getStatusColor(status: AppointmentStatus): 'primary' | 'accent' | 'warn' | undefined {
@@ -856,7 +722,7 @@ export class AppointmentsComponent implements OnInit {
     };
 
     return colors[status];
-=======
+
     } as Record<AppointmentStatus, string>;
     return labels[status] ?? status;
   }
@@ -881,7 +747,6 @@ export class AppointmentsComponent implements OnInit {
       return '—';
     }
     return `${user.firstName || ''} ${user.lastName || ''}`.trim();
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
   }
 
   getStatusIcon(status: AppointmentStatus): string {

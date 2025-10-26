@@ -12,19 +12,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { User, UserRole } from '@app/core/models';
-<<<<<<< HEAD
-import { StatCardComponent } from '@app/shared/components/stat-card/stat-card.component';
-import { ConfirmDialogComponent, ConfirmDialogData } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
-import { take } from 'rxjs';
-<<<<<<< HEAD
-=======
 import { UsersState } from './users.state';
 import { UserService } from '@app/core/services/user.service';
 import { Observable } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
-=======
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
 
 @Component({
   selector: 'app-users',
@@ -48,8 +40,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss']
 
-<<<<<<< HEAD
-=======
       <div class="filters">
         <mat-form-field appearance="outline">
           <mat-label>Filtrer par rôle</mat-label>
@@ -283,7 +273,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
       margin-top: 16px;
     }
   `]
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
 })
 export class UsersComponent {
   private readonly destroyRef = inject(DestroyRef);
@@ -294,17 +283,13 @@ export class UsersComponent {
 
   constructor(
     private userService: UserService,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
     this.loadUsers();
-=======
+
     private usersState: UsersState,
     private snackBar: MatSnackBar
   ) {
@@ -313,7 +298,7 @@ export class UsersComponent {
       .subscribe((message) => {
         this.snackBar.open(message, 'Fermer', { duration: 3000 });
       });
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
+
   }
 
   onFilterChange(role: UserRole | null): void {
@@ -349,10 +334,7 @@ export class UsersComponent {
 
   toggleStatus(user: User): void {
     const action = user.isActive ? 'désactiver' : 'activer';
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
     this.openConfirmationDialog({
       title: 'Confirmation',
       message: `Voulez-vous vraiment ${action} ${user.firstName} ${user.lastName} ?`,
@@ -364,8 +346,6 @@ export class UsersComponent {
           next: () => {
             this.snackBar.open(`Utilisateur ${action === 'désactiver' ? 'désactivé' : 'activé'}`, 'Fermer', { duration: 3000 });
             this.loadUsers();
-<<<<<<< HEAD
-=======
     if (confirm(`Voulez-vous vraiment ${action} cet utilisateur ?`)) {
       this.userService.toggleUserStatus(user.id)
         .pipe(takeUntilDestroyed(this.destroyRef))
@@ -373,33 +353,11 @@ export class UsersComponent {
           next: () => {
             this.snackBar.open(`Utilisateur ${action === 'désactiver' ? 'désactivé' : 'activé'}`, 'Fermer', { duration: 3000 });
             this.usersState.refresh();
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
-=======
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
           },
           error: () => {
             this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
           }
         });
-<<<<<<< HEAD
-<<<<<<< HEAD
-      }
-    });
-  }
-
-  deleteUser(user: User): void {
-    this.openConfirmationDialog({
-      title: 'Supprimer un utilisateur',
-      message: `Voulez-vous vraiment supprimer ${user.firstName} ${user.lastName} ?`,
-      confirmLabel: 'Supprimer',
-      icon: 'delete'
-    }).pipe(take(1)).subscribe((confirmed) => {
-      if (confirmed) {
-        this.userService.deleteUser(user.id).subscribe({
-          next: () => {
-            this.snackBar.open('Utilisateur supprimé', 'Fermer', { duration: 3000 });
-            this.loadUsers();
-=======
     }
   }
 
@@ -411,13 +369,13 @@ export class UsersComponent {
           next: () => {
             this.snackBar.open('Utilisateur supprimé', 'Fermer', { duration: 3000 });
             this.usersState.refresh();
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
-=======
-      }
+
+     }
     });
   }
 
   deleteUser(user: User): void {
+
     this.openConfirmationDialog({
       title: 'Supprimer un utilisateur',
       message: `Voulez-vous vraiment supprimer ${user.firstName} ${user.lastName} ?`,
@@ -429,16 +387,13 @@ export class UsersComponent {
           next: () => {
             this.snackBar.open('Utilisateur supprimé', 'Fermer', { duration: 3000 });
             this.loadUsers();
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
           },
           error: () => {
             this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
           }
         });
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
       }
     });
   }
@@ -449,11 +404,7 @@ export class UsersComponent {
       autoFocus: false,
       restoreFocus: false
     }).afterClosed();
-<<<<<<< HEAD
-=======
     }
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
-=======
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
   }
 }

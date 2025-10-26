@@ -7,20 +7,13 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { NotificationService, Notification } from '@app/core/services/notification.service';
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
-import { take } from 'rxjs';
-=======
 import { Observable } from 'rxjs';
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
-=======
+
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { take } from 'rxjs';
 import { MatTooltipModule } from '@angular/material/tooltip';
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
 
 @Component({
   selector: 'app-notification-center',
@@ -34,12 +27,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatMenuModule,
     MatDividerModule,
     MatDialogModule,
-<<<<<<< HEAD
-    ConfirmDialogComponent
-=======
     ConfirmDialogComponent,
     MatTooltipModule
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
   ],
   template: `
     <button mat-icon-button [matMenuTriggerFor]="notificationMenu"
@@ -51,10 +41,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
     <mat-menu #notificationMenu="matMenu" class="notification-menu">
       <div class="notification-header" (click)="$event.stopPropagation()">
-<<<<<<< HEAD
-        <h3>Notifications</h3>
-        <ng-container *ngIf="unreadCount$ | async as unreadCount">
-=======
         <div class="title-group">
           <h3>Notifications</h3>
           <span class="realtime-indicator" [class.connected]="realtimeConnected">
@@ -66,16 +52,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
           <button mat-icon-button (click)="sync()" [disabled]="isSyncing" matTooltip="Synchroniser">
             <mat-icon [class.spin]="isSyncing">refresh</mat-icon>
           </button>
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
           <button mat-button (click)="markAllAsRead()" *ngIf="unreadCount > 0">
             <mat-icon>done_all</mat-icon>
             Tout marquer lu
           </button>
-<<<<<<< HEAD
-        </ng-container>
-=======
         </div>
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
       </div>
 
       <mat-divider></mat-divider>
@@ -311,24 +294,17 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     }
   `]
 })
-<<<<<<< HEAD
-export class NotificationCenterComponent {
-  notifications$: Observable<Notification[]> = this.notificationService.notifications$;
-  unreadCount$: Observable<number> = this.notificationService.unreadCount$;
-=======
 export class NotificationCenterComponent implements OnInit {
   notifications: Notification[] = [];
   unreadCount = 0;
   isSyncing = false;
   realtimeConnected = false;
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
 
   constructor(
     private notificationService: NotificationService,
     private dialog: MatDialog
   ) {}
-<<<<<<< HEAD
-=======
 
   ngOnInit(): void {
     this.notificationService.notifications$.subscribe((notifications: Notification[]) => {
@@ -347,7 +323,7 @@ export class NotificationCenterComponent implements OnInit {
       this.realtimeConnected = connected;
     });
   }
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+
 
   getIcon(type: string): string {
     const icons: any = {
