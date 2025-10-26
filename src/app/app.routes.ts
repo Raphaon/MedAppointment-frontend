@@ -86,5 +86,19 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: { roles: [UserRole.ADMIN] }
   },
+  {
+    path: 'consultations',
+    canActivate: [AuthGuard],
+    data: { roles: [UserRole.DOCTOR] },
+    children: [
+      {
+        path: ':appointmentId',
+        loadComponent: () =>
+          import('./features/consultations/consultation-workspace.component').then(
+            (m) => m.ConsultationWorkspaceComponent
+          )
+      }
+    ]
+  },
   { path: '**', redirectTo: '/dashboard' }
 ];

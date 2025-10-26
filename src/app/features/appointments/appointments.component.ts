@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -97,7 +97,8 @@ export class AppointmentsComponent implements OnInit, AfterViewInit {
     private readonly appointmentService: AppointmentService,
     private readonly authService: AuthService,
     private readonly snackBar: MatSnackBar,
-    private readonly dialog: MatDialog
+    private readonly dialog: MatDialog,
+    private readonly router: Router
   ) {
     this.filterForm = this.fb.group({
       status: ['ALL'],
@@ -107,6 +108,18 @@ export class AppointmentsComponent implements OnInit, AfterViewInit {
         end: [null]
       })
     });
+  }
+
+  get isDoctor(): boolean {
+    return this.currentUser?.role === UserRole.DOCTOR;
+  }
+
+  openConsultation(appointment: Appointment): void {
+    if (!this.isDoctor || !appointment?.id) {
+      return;
+    }
+
+    this.router.navigate(['/consultations', appointment.id]);
   }
 
   ngOnInit(): void {
