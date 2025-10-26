@@ -7,6 +7,10 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { NotificationService, Notification } from '@app/core/services/notification.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
+import { take } from 'rxjs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-notification-center',
@@ -18,7 +22,10 @@ import { NotificationService, Notification } from '@app/core/services/notificati
     MatIconModule,
     MatBadgeModule,
     MatMenuModule,
-    MatDividerModule
+    MatDividerModule,
+    MatDialogModule,
+    ConfirmDialogComponent,
+    MatTooltipModule
   ],
   template: `
     <button mat-icon-button [matMenuTriggerFor]="notificationMenu" 
@@ -30,11 +37,22 @@ import { NotificationService, Notification } from '@app/core/services/notificati
 
     <mat-menu #notificationMenu="matMenu" class="notification-menu">
       <div class="notification-header" (click)="$event.stopPropagation()">
-        <h3>Notifications</h3>
-        <button mat-button (click)="markAllAsRead()" *ngIf="unreadCount > 0">
-          <mat-icon>done_all</mat-icon>
-          Tout marquer lu
-        </button>
+        <div class="title-group">
+          <h3>Notifications</h3>
+          <span class="realtime-indicator" [class.connected]="realtimeConnected">
+            <span class="dot"></span>
+            Temps réel {{ realtimeConnected ? 'actif' : 'en veille' }}
+          </span>
+        </div>
+        <div class="header-actions">
+          <button mat-icon-button (click)="sync()" [disabled]="isSyncing" matTooltip="Synchroniser">
+            <mat-icon [class.spin]="isSyncing">refresh</mat-icon>
+          </button>
+          <button mat-button (click)="markAllAsRead()" *ngIf="unreadCount > 0">
+            <mat-icon>done_all</mat-icon>
+            Tout marquer lu
+          </button>
+        </div>
       </div>
 
       <mat-divider></mat-divider>
@@ -95,10 +113,59 @@ import { NotificationService, Notification } from '@app/core/services/notificati
       padding: 16px;
     }
 
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .notification-header h3 {
       margin: 0;
       font-size: 18px;
       color: #333;
+    }
+
+    .realtime-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      background: #f5f5f5;
+      color: #777;
+      padding: 4px 8px;
+      border-radius: 999px;
+    }
+
+    .realtime-indicator.connected {
+      color: #2e7d32;
+      background: #e8f5e9;
+    }
+
+    .realtime-indicator .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #f44336;
+    }
+
+    .realtime-indicator.connected .dot {
+      background: #2e7d32;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .header-actions .spin {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .notifications-list {
@@ -222,8 +289,13 @@ import { NotificationService, Notification } from '@app/core/services/notificati
 export class NotificationCenterComponent implements OnInit {
   notifications: Notification[] = [];
   unreadCount = 0;
+  isSyncing = false;
+  realtimeConnected = false;
 
-  constructor(private notificationService: NotificationService) {}
+  constructor(
+    private notificationService: NotificationService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.notificationService.notifications$.subscribe((notifications: Notification[]) => {
@@ -232,6 +304,14 @@ export class NotificationCenterComponent implements OnInit {
 
     this.notificationService.unreadCount$.subscribe((count: number) => {
       this.unreadCount = count;
+    });
+
+    this.notificationService.isSyncing$.subscribe((syncing: boolean) => {
+      this.isSyncing = syncing;
+    });
+
+    this.notificationService.realtimeConnected$.subscribe((connected: boolean) => {
+      this.realtimeConnected = connected;
     });
   }
 
@@ -274,9 +354,24 @@ export class NotificationCenterComponent implements OnInit {
     this.notificationService.markAllAsRead();
   }
 
+  sync(): void {
+    this.notificationService.refreshFromServer();
+  }
+
   clearAll(): void {
-    if (confirm('Voulez-vous vraiment supprimer toutes les notifications ?')) {
-      this.notificationService.clearAll();
-    }
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Tout supprimer ?',
+        message: 'Voulez-vous vraiment supprimer toutes les notifications ? Cette action est irréversible.',
+        confirmLabel: 'Tout supprimer',
+        icon: 'delete_sweep'
+      },
+      autoFocus: false,
+      restoreFocus: false
+    }).afterClosed().pipe(take(1)).subscribe((confirmed) => {
+      if (confirmed) {
+        this.notificationService.clearAll();
+      }
+    });
   }
 }

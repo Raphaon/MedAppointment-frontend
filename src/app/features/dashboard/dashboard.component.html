@@ -91,6 +91,12 @@
                 <p>Gérez vos rendez-vous patients</p>
               </mat-card>
 
+              <mat-card class="action-card" routerLink="/consultations">
+                <mat-icon color="primary">video_call</mat-icon>
+                <h3>Consultations en ligne</h3>
+                <p>Accédez à vos téléconsultations et démarrez la salle</p>
+              </mat-card>
+
               <mat-card class="action-card" routerLink="/profile">
                 <mat-icon color="warn">local_hospital</mat-icon>
                 <h3>Mon profil médecin</h3>
@@ -118,6 +124,45 @@
                 <p>Liste des médecins inscrits</p>
               </mat-card>
             </ng-container>
+          </div>
+        </div>
+
+        <div class="admin-insights" *ngIf="currentUser?.role === UserRole.ADMIN">
+          <h2>📊 Analyse d'activité</h2>
+
+          <div class="insights-highlights">
+            <mat-card *ngFor="let highlight of adminHighlights" class="highlight-card">
+              <h3>{{ highlight.label }}</h3>
+              <p class="value">{{ highlight.value }}</p>
+              <p class="description" *ngIf="highlight.description">{{ highlight.description }}</p>
+            </mat-card>
+          </div>
+
+          <div class="insights-breakdown" *ngIf="statusBreakdown.length > 0 || adminTrends.length > 0">
+            <mat-card *ngIf="statusBreakdown.length > 0">
+              <h3>Répartition des statuts</h3>
+              <div class="status-chips">
+                <span class="status-chip" *ngFor="let status of statusBreakdown">
+                  <strong>{{ status.count }}</strong>
+                  {{ status.label }}
+                </span>
+              </div>
+            </mat-card>
+
+            <mat-card *ngIf="adminTrends.length > 0">
+              <h3>Tendance des 5 dernières semaines</h3>
+              <ul class="trend-list">
+                <li *ngFor="let trend of adminTrends">
+                  <span class="period">{{ trend.period }}</span>
+                  <span class="total">{{ trend.total }} RDV</span>
+                  <span class="delta" [class.positive]="trend.delta >= 0" [class.negative]="trend.delta < 0">
+                    <mat-icon>{{ trend.delta >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
+                    {{ trend.delta >= 0 ? '+' : ''}}{{ trend.delta }}
+                  </span>
+                  <span class="confirmed">{{ trend.confirmed }} confirmés</span>
+                </li>
+              </ul>
+            </mat-card>
           </div>
         </div>
 

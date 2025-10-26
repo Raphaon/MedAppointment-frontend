@@ -12,6 +12,9 @@ import { AppointmentService } from '@app/core/services/appointment.service';
 import { NotificationCenterComponent } from '@app/shared/components/notification-center.component';
 import { User, UserRole, Appointment, AppointmentStatus } from '@app/core/models';
 import { StatCardComponent } from '@app/shared/components/stat-card/stat-card.component';
+import { UserService } from '@app/core/services/user.service';
+import { DoctorService } from '@app/core/services/doctor.service';
+import { forkJoin } from 'rxjs';
 
 interface StatCard {
   title: string;
@@ -45,130 +48,284 @@ export class DashboardComponent implements OnInit {
   UserRole = UserRole;
   stats: StatCard[] = [];
   upcomingAppointments: Appointment[] = [];
+  statusBreakdown: { status: AppointmentStatus; label: string; count: number }[] = [];
+  adminHighlights: { label: string; value: string; description?: string }[] = [];
+  adminTrends: { period: string; total: number; delta: number; confirmed: number }[] = [];
 
   constructor(
     private authService: AuthService,
     private appointmentService: AppointmentService,
-    private router: Router
+    private router: Router,
+    private userService: UserService,
+    private doctorService: DoctorService
   ) {}
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe((user: User | null) => {
       this.currentUser = user;
       if (user) {
-        this.loadStatistics();
-        this.loadUpcomingAppointments();
+        this.loadDashboardData();
       }
     });
   }
 
-  loadStatistics(): void {
+  private loadDashboardData(): void {
+    if (!this.currentUser) {
+      return;
+    }
+
+    if (this.currentUser.role === UserRole.ADMIN) {
+      this.loadAdminDashboard();
+      return;
+    }
+
     this.appointmentService.getMyAppointments().subscribe({
       next: (response: any) => {
         const appointments = response.appointments || [];
-        
-        if (this.currentUser?.role === UserRole.PATIENT) {
-          this.stats = [
-            {
-              title: 'Rendez-vous à venir',
-              value: appointments.filter((a: Appointment) => 
-                a.status === AppointmentStatus.CONFIRMED || a.status === AppointmentStatus.PENDING
-              ).length,
-              icon: 'event',
-              color: '#4caf50',
-              route: '/appointments'
-            },
-            {
-              title: 'Consultations passées',
-              value: appointments.filter((a: Appointment) => 
-                a.status === AppointmentStatus.COMPLETED
-              ).length,
-              icon: 'history',
-              color: '#2196f3'
-            },
-            {
-              title: 'Total rendez-vous',
-              value: appointments.length,
-              icon: 'calendar_today',
-              color: '#ff9800'
-            }
-          ];
-        } else if (this.currentUser?.role === UserRole.DOCTOR) {
-          this.stats = [
-            {
-              title: 'Patients aujourd\'hui',
-              value: appointments.filter((a: Appointment) => 
-                this.isToday(new Date(a.appointmentDate))
-              ).length,
-              icon: 'people',
-              color: '#4caf50',
-              route: '/calendar'
-            },
-            {
-              title: 'En attente',
-              value: appointments.filter((a: Appointment) => 
-                a.status === AppointmentStatus.PENDING
-              ).length,
-              icon: 'schedule',
-              color: '#ff9800',
-              route: '/appointments'
-            },
-            {
-              title: 'Total consultations',
-              value: appointments.length,
-              icon: 'local_hospital',
-              color: '#2196f3'
-            }
-          ];
-        } else if (this.currentUser?.role === UserRole.ADMIN) {
-          this.stats = [
-            {
-              title: 'Total rendez-vous',
-              value: appointments.length,
-              icon: 'event',
-              color: '#4caf50',
-              route: '/appointments'
-            },
-            {
-              title: 'Utilisateurs',
-              value: 0, // À charger depuis UserService
-              icon: 'people',
-              color: '#2196f3',
-              route: '/users'
-            },
-            {
-              title: 'Médecins actifs',
-              value: 0, // À charger depuis DoctorService
-              icon: 'local_hospital',
-              color: '#ff9800',
-              route: '/doctors'
-            }
-          ];
+        this.upcomingAppointments = this.extractUpcomingAppointments(appointments);
+        this.statusBreakdown = [];
+        this.adminHighlights = [];
+        this.adminTrends = [];
+        this.buildStats(appointments);
+      },
+      error: (error: any) => {
+        console.error('Erreur chargement des données du tableau de bord:', error);
+      }
+    });
+  }
+
+  private loadAdminDashboard(): void {
+    this.statusBreakdown = [];
+    this.adminHighlights = [];
+    this.adminTrends = [];
+
+    forkJoin({
+      appointments: this.appointmentService.getAllAppointments(),
+      users: this.userService.getAllUsers(),
+      doctors: this.doctorService.getAllDoctors()
+    }).subscribe({
+      next: ({ appointments, users, doctors }) => {
+        const appointmentList = appointments.appointments || [];
+        const appointmentCount = appointments.count ?? appointmentList.length;
+        const userCount = users?.count ?? users?.users?.length ?? 0;
+        const doctorCount = doctors?.count ?? doctors?.doctors?.length ?? 0;
+
+        this.upcomingAppointments = this.extractUpcomingAppointments(appointmentList);
+        this.stats = [
+          {
+            title: 'Total rendez-vous',
+            value: appointmentCount,
+            icon: 'event',
+            color: '#4caf50',
+            route: '/appointments'
+          },
+          {
+            title: 'Utilisateurs',
+            value: userCount,
+            icon: 'people',
+            color: '#2196f3',
+            route: '/users'
+          },
+          {
+            title: 'Médecins actifs',
+            value: doctorCount,
+            icon: 'local_hospital',
+            color: '#ff9800',
+            route: '/doctors'
+          }
+        ];
+
+        this.buildAdminInsights(appointmentList);
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des indicateurs administrateur:', error);
+      }
+    });
+  }
+
+  private extractUpcomingAppointments(appointments: Appointment[]): Appointment[] {
+    const now = new Date();
+
+    return appointments
+      .filter((a: Appointment) => new Date(a.appointmentDate) > now)
+      .sort((a: Appointment, b: Appointment) =>
+        new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime()
+      )
+      .slice(0, 3);
+  }
+
+  private buildStats(appointments: Appointment[]): void {
+    if (!this.currentUser) {
+      this.stats = [];
+      return;
+    }
+
+    if (this.currentUser.role === UserRole.PATIENT) {
+      this.stats = [
+        {
+          title: 'Rendez-vous à venir',
+          value: appointments.filter((a: Appointment) =>
+            a.status === AppointmentStatus.CONFIRMED || a.status === AppointmentStatus.PENDING
+          ).length,
+          icon: 'event',
+          color: '#4caf50',
+          route: '/appointments'
+        },
+        {
+          title: 'Consultations passées',
+          value: appointments.filter((a: Appointment) =>
+            a.status === AppointmentStatus.COMPLETED
+          ).length,
+          icon: 'history',
+          color: '#2196f3'
+        },
+        {
+          title: 'Total rendez-vous',
+          value: appointments.length,
+          icon: 'calendar_today',
+          color: '#ff9800'
         }
+      ];
+      return;
+    }
+
+    if (this.currentUser.role === UserRole.DOCTOR) {
+      this.stats = [
+        {
+          title: 'Patients aujourd\'hui',
+          value: appointments.filter((a: Appointment) =>
+            this.isToday(new Date(a.appointmentDate))
+          ).length,
+          icon: 'people',
+          color: '#4caf50',
+          route: '/calendar'
+        },
+        {
+          title: 'En attente',
+          value: appointments.filter((a: Appointment) =>
+            a.status === AppointmentStatus.PENDING
+          ).length,
+          icon: 'schedule',
+          color: '#ff9800',
+          route: '/appointments'
+        },
+        {
+          title: 'Total consultations',
+          value: appointments.length,
+          icon: 'local_hospital',
+          color: '#2196f3'
+        }
+      ];
+      return;
+    }
+
+    if (this.currentUser.role === UserRole.ADMIN) {
+      return;
+    }
+  }
+
+  private buildAdminInsights(appointments: Appointment[]): void {
+    this.statusBreakdown = this.buildStatusBreakdown(appointments);
+    this.adminHighlights = this.buildAdminHighlights(appointments);
+    this.adminTrends = this.buildAdminTrends(appointments);
+  }
+
+  private buildStatusBreakdown(appointments: Appointment[]): { status: AppointmentStatus; label: string; count: number }[] {
+    const statuses = [
+      AppointmentStatus.CONFIRMED,
+      AppointmentStatus.PENDING,
+      AppointmentStatus.CANCELLED,
+      AppointmentStatus.COMPLETED,
+      AppointmentStatus.NO_SHOW
+    ];
+
+    return statuses
+      .map((status) => ({
+        status,
+        label: this.getStatusLabel(status),
+        count: appointments.filter((appointment) => appointment.status === status).length
+      }))
+      .filter((item) => item.count > 0);
+  }
+
+  private buildAdminHighlights(appointments: Appointment[]): { label: string; value: string; description?: string }[] {
+    const total = appointments.length;
+    const safeTotal = total === 0 ? 1 : total;
+    const confirmed = appointments.filter((appointment) => appointment.status === AppointmentStatus.CONFIRMED).length;
+    const cancelled = appointments.filter((appointment) => appointment.status === AppointmentStatus.CANCELLED).length;
+    const noShow = appointments.filter((appointment) => appointment.status === AppointmentStatus.NO_SHOW).length;
+    const pending = appointments.filter((appointment) => appointment.status === AppointmentStatus.PENDING).length;
+    const upcoming30 = this.countUpcomingWithin(appointments, 30);
+
+    const confirmationRate = Math.round((confirmed / safeTotal) * 100);
+    const cancellationRate = Math.round(((cancelled + noShow) / safeTotal) * 100);
+
+    return [
+      {
+        label: 'Taux de confirmation',
+        value: `${confirmationRate}%`,
+        description: `${confirmed} confirmés sur ${total}`
       },
-      error: (error: any) => {
-        console.error('Erreur chargement stats:', error);
+      {
+        label: 'Annulations & absences',
+        value: `${cancellationRate}%`,
+        description: `${cancelled + noShow} événements à surveiller`
+      },
+      {
+        label: 'Rendez-vous à venir (30j)',
+        value: `${upcoming30}`,
+        description: `${pending} en attente de validation`
       }
+    ];
+  }
+
+  private buildAdminTrends(appointments: Appointment[]): { period: string; total: number; delta: number; confirmed: number }[] {
+    const trends: { period: string; total: number; delta: number; confirmed: number }[] = [];
+    const reference = new Date();
+
+    for (let weekOffset = 0; weekOffset < 5; weekOffset++) {
+      const start = this.startOfWeek(reference, weekOffset);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+
+      const weeklyAppointments = appointments.filter((appointment) => {
+        const appointmentDate = new Date(appointment.appointmentDate);
+        return appointmentDate >= start && appointmentDate <= end;
+      });
+
+      const period = `${start.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })} → ${end.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}`;
+      const confirmed = weeklyAppointments.filter((appointment) => appointment.status === AppointmentStatus.CONFIRMED).length;
+
+      trends.push({ period, total: weeklyAppointments.length, confirmed, delta: 0 });
+    }
+
+    return trends.map((trend, index) => {
+      const previous = trends[index + 1];
+      const delta = previous ? trend.total - previous.total : 0;
+      return { ...trend, delta };
     });
   }
 
-  loadUpcomingAppointments(): void {
-    this.appointmentService.getMyAppointments().subscribe({
-      next: (response: any) => {
-        const appointments = response.appointments || [];
-        const now = new Date();
-        
-        this.upcomingAppointments = appointments
-          .filter((a: Appointment) => new Date(a.appointmentDate) > now)
-          .sort((a: Appointment, b: Appointment) => 
-            new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime()
-          )
-          .slice(0, 3); // Seulement les 3 prochains
-      },
-      error: (error: any) => {
-        console.error('Erreur chargement RDV:', error);
-      }
-    });
+  private countUpcomingWithin(appointments: Appointment[], daysAhead: number): number {
+    const now = new Date();
+    const limit = new Date();
+    limit.setHours(23, 59, 59, 999);
+    limit.setDate(limit.getDate() + daysAhead);
+
+    return appointments.filter((appointment) => {
+      const appointmentDate = new Date(appointment.appointmentDate);
+      return appointmentDate >= now && appointmentDate <= limit && appointment.status !== AppointmentStatus.CANCELLED;
+    }).length;
+  }
+
+  private startOfWeek(reference: Date, weeksAgo: number): Date {
+    const date = new Date(reference);
+    date.setHours(0, 0, 0, 0);
+    const day = date.getDay();
+    const diff = (day + 6) % 7; // Lundi comme début de semaine
+    date.setDate(date.getDate() - diff - weeksAgo * 7);
+    return date;
   }
 
   getRoleLabel(): string {
