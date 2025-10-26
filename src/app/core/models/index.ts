@@ -80,6 +80,46 @@ export interface Appointment {
   patient?: User;
 }
 
+export enum ConsultationStatus {
+  PLANNED = 'PLANNED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED'
+}
+
+export interface Consultation {
+  id: string;
+  appointmentId: string;
+  doctorId: string;
+  patientId: string;
+  status: ConsultationStatus;
+  startTime?: string;
+  endTime?: string;
+  summary?: string;
+  prescriptionUrl?: string;
+  diagnostics?: string;
+  recommendations?: string;
+  createdAt?: string;
+  appointment?: Appointment;
+  doctor?: User;
+  patient?: User;
+  roomUrl?: string;
+  token?: string;
+}
+
+export interface ConsultationEvent {
+  type: 'patient_joined' | 'patient_left' | 'doctor_joined' | 'doctor_left' | 'status_updated';
+  timestamp: string;
+  payload?: Record<string, any>;
+}
+
+export interface CompleteConsultationDto {
+  summary: string;
+  prescriptionUrl?: string;
+  recommendations?: string;
+  diagnostics?: string;
+}
+
 // DTOs
 export interface LoginDto {
   email: string;

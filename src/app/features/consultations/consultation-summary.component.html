@@ -1,0 +1,48 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="summary-form">
+  <h3>Compte rendu de consultation</h3>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Résumé médical</mat-label>
+    <textarea matInput rows="4" formControlName="summary" placeholder="Décrivez le diagnostic et les actions réalisées"></textarea>
+    <mat-error *ngIf="form.get('summary')?.hasError('required')">
+      Le compte rendu est requis.
+    </mat-error>
+    <mat-error *ngIf="form.get('summary')?.hasError('minlength')">
+      Merci de détailler davantage le compte rendu (10 caractères minimum).
+    </mat-error>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Diagnostic</mat-label>
+    <textarea matInput rows="3" formControlName="diagnostics" placeholder="ICD-10, observations complémentaires..."></textarea>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Recommandations</mat-label>
+    <textarea matInput rows="3" formControlName="recommendations" placeholder="Suivi, conseils, contre-indications"></textarea>
+  </mat-form-field>
+
+  <app-prescription-upload
+    [consultationId]="consultation?.id"
+    (uploaded)="onPrescriptionUploaded($event)"
+    [disabled]="saving || !consultation?.id"
+  ></app-prescription-upload>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Lien de prescription</mat-label>
+    <input matInput formControlName="prescriptionUrl" placeholder="https://..." readonly>
+    <button mat-icon-button matSuffix type="button" *ngIf="form.get('prescriptionUrl')?.value" (click)="form.patchValue({ prescriptionUrl: '' })">
+      <mat-icon>clear</mat-icon>
+    </button>
+  </mat-form-field>
+
+  <div class="actions">
+    <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="saving">
+      Annuler
+    </button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="saving">
+      <mat-icon>save</mat-icon>
+      Enregistrer et clôturer
+    </button>
+  </div>
+</form>

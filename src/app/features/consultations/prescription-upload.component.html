@@ -1,0 +1,17 @@
+<div class="upload-wrapper">
+  <label class="upload-button" [class.disabled]="disabled || uploading">
+    <input type="file" accept="application/pdf" (change)="onFileSelected($event)" [disabled]="disabled || uploading">
+    <mat-icon>upload_file</mat-icon>
+    <span>{{ label }}</span>
+  </label>
+
+  <div class="upload-status" *ngIf="uploading">
+    <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+    <span>Téléversement en cours...</span>
+  </div>
+
+  <div class="file-info" *ngIf="!uploading && fileName">
+    <mat-icon>description</mat-icon>
+    <span>{{ fileName }}</span>
+  </div>
+</div>

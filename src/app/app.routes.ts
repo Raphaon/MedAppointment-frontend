@@ -67,5 +67,20 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: { roles: [UserRole.ADMIN] }
   },
+  {
+    path: 'consultations',
+    canActivate: [AuthGuard],
+    data: { roles: [UserRole.DOCTOR] },
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./features/consultations/consultations.component').then(m => m.ConsultationsComponent)
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./features/consultations/consultation-room.component').then(m => m.ConsultationRoomComponent)
+      }
+    ]
+  },
   { path: '**', redirectTo: '/dashboard' }
 ];

@@ -19,10 +19,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { AppointmentService } from '@app/core/services/appointment.service';
-import { Appointment, AppointmentStatus } from '@app/core/models';
+import { AuthService } from '@app/core/services/auth.service';
+import { ConsultationService } from '@app/core/services/consultation.service';
+import { Appointment, AppointmentStatus, UserRole } from '@app/core/models';
 import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
 import { take, debounceTime } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-appointments',
@@ -70,12 +73,18 @@ export class AppointmentsComponent implements OnInit, AfterViewInit, OnDestroy {
   AppointmentStatus = AppointmentStatus;
 
   private filterSub?: Subscription;
+  private userSub?: Subscription;
+  isDoctor = false;
+  startingConsultations = new Set<string>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
     private appointmentService: AppointmentService,
+    private consultationService: ConsultationService,
+    private authService: AuthService,
+    private router: Router,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private fb: FormBuilder
@@ -105,6 +114,10 @@ export class AppointmentsComponent implements OnInit, AfterViewInit, OnDestroy {
           return (item as Record<string, any>)[property] ?? '';
       }
     };
+    this.isDoctor = this.authService.getCurrentUser()?.role === UserRole.DOCTOR;
+    this.userSub = this.authService.currentUser$.subscribe((user) => {
+      this.isDoctor = user?.role === UserRole.DOCTOR;
+    });
   }
 
   ngOnInit(): void {
@@ -121,6 +134,7 @@ export class AppointmentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.filterSub?.unsubscribe();
+    this.userSub?.unsubscribe();
   }
 
   loadAppointments(): void {
@@ -253,6 +267,35 @@ export class AppointmentsComponent implements OnInit, AfterViewInit, OnDestroy {
             this.snackBar.open('Erreur lors de l\'annulation', 'Fermer', { duration: 3000 });
           }
         });
+      }
+    });
+  }
+
+  canStartConsultation(appointment: Appointment): boolean {
+    return this.isDoctor && appointment.status === AppointmentStatus.CONFIRMED;
+  }
+
+  startConsultation(appointment: Appointment): void {
+    if (!this.canStartConsultation(appointment) || this.startingConsultations.has(appointment.id)) {
+      return;
+    }
+
+    this.startingConsultations.add(appointment.id);
+    this.consultationService.startConsultation(appointment.id).subscribe({
+      next: (response) => {
+        this.startingConsultations.delete(appointment.id);
+        const consultationId = response.consultation?.id;
+        if (consultationId) {
+          this.snackBar.open('Salle de consultation ouverte', 'Fermer', { duration: 3000 });
+          this.router.navigate(['/consultations', consultationId], { queryParams: { token: response.token, roomUrl: response.roomUrl } });
+          this.loadAppointments();
+        } else {
+          this.snackBar.open('Consultation démarrée mais identifiant manquant', 'Fermer', { duration: 4000 });
+        }
+      },
+      error: () => {
+        this.startingConsultations.delete(appointment.id);
+        this.snackBar.open('Impossible de démarrer la consultation en ligne', 'Fermer', { duration: 4000 });
       }
     });
   }
