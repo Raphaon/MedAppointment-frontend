@@ -9,10 +9,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '@app/core/services/user.service';
 import { User, UserRole } from '@app/core/models';
 import { StatCardComponent } from '@app/shared/components/stat-card/stat-card.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-users',
@@ -29,7 +32,9 @@ import { StatCardComponent } from '@app/shared/components/stat-card/stat-card.co
     MatFormFieldModule,
     MatSnackBarModule,
     MatTooltipModule,
-    StatCardComponent
+    MatDialogModule,
+    StatCardComponent,
+    ConfirmDialogComponent
   ],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss']
@@ -43,7 +48,8 @@ export class UsersComponent implements OnInit {
 
   constructor(
     private userService: UserService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -94,30 +100,52 @@ export class UsersComponent implements OnInit {
 
   toggleStatus(user: User): void {
     const action = user.isActive ? 'désactiver' : 'activer';
-    if (confirm(`Voulez-vous vraiment ${action} cet utilisateur ?`)) {
-      this.userService.toggleUserStatus(user.id).subscribe({
-        next: () => {
-          this.snackBar.open(`Utilisateur ${action === 'désactiver' ? 'désactivé' : 'activé'}`, 'Fermer', { duration: 3000 });
-          this.loadUsers();
-        },
-        error: () => {
-          this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
-        }
-      });
-    }
+    this.openConfirmationDialog({
+      title: 'Confirmation',
+      message: `Voulez-vous vraiment ${action} ${user.firstName} ${user.lastName} ?`,
+      confirmLabel: action === 'désactiver' ? 'Désactiver' : 'Activer',
+      icon: 'help_outline'
+    }).pipe(take(1)).subscribe((confirmed) => {
+      if (confirmed) {
+        this.userService.toggleUserStatus(user.id).subscribe({
+          next: () => {
+            this.snackBar.open(`Utilisateur ${action === 'désactiver' ? 'désactivé' : 'activé'}`, 'Fermer', { duration: 3000 });
+            this.loadUsers();
+          },
+          error: () => {
+            this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 
   deleteUser(user: User): void {
-    if (confirm(`Voulez-vous vraiment supprimer ${user.firstName} ${user.lastName} ?`)) {
-      this.userService.deleteUser(user.id).subscribe({
-        next: () => {
-          this.snackBar.open('Utilisateur supprimé', 'Fermer', { duration: 3000 });
-          this.loadUsers();
-        },
-        error: () => {
-          this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
-        }
-      });
-    }
+    this.openConfirmationDialog({
+      title: 'Supprimer un utilisateur',
+      message: `Voulez-vous vraiment supprimer ${user.firstName} ${user.lastName} ?`,
+      confirmLabel: 'Supprimer',
+      icon: 'delete'
+    }).pipe(take(1)).subscribe((confirmed) => {
+      if (confirmed) {
+        this.userService.deleteUser(user.id).subscribe({
+          next: () => {
+            this.snackBar.open('Utilisateur supprimé', 'Fermer', { duration: 3000 });
+            this.loadUsers();
+          },
+          error: () => {
+            this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
+          }
+        });
+      }
+    });
+  }
+
+  private openConfirmationDialog(data: ConfirmDialogData) {
+    return this.dialog.open(ConfirmDialogComponent, {
+      data,
+      autoFocus: false,
+      restoreFocus: false
+    }).afterClosed();
   }
 }
