@@ -38,6 +38,20 @@ interface AdminTrendItem {
   confirmed: number;
 }
 
+interface QuickAction {
+  route: string;
+  label: string;
+  description: string;
+  emoji: string;
+  accent: string;
+}
+
+interface HeroHighlight {
+  emoji: string;
+  label: string;
+  value: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -143,6 +157,188 @@ export class DashboardComponent {
     return stat.title;
   }
 
+  trackByAction(_: number, action: QuickAction): string {
+    return action.route ?? action.label;
+  }
+
+  trackByHighlight(_: number, highlight: HeroHighlight): string {
+    return highlight.label;
+  }
+
+  get quickActions(): QuickAction[] {
+    const role = this.currentUser?.role;
+
+    if (role === UserRole.PATIENT) {
+      return [
+        {
+          route: '/doctors',
+          label: 'Trouver un médecin',
+          description: 'Explorez les spécialistes disponibles autour de vous',
+          emoji: '🔍',
+          accent: 'linear-gradient(135deg, #dbeafe, #bfdbfe)'
+        },
+        {
+          route: '/appointments/create',
+          label: 'Planifier un rendez-vous',
+          description: 'Choisissez la date idéale en quelques secondes',
+          emoji: '🗓️',
+          accent: 'linear-gradient(135deg, #ede9fe, #ddd6fe)'
+        },
+        {
+          route: '/appointments',
+          label: 'Suivre mes visites',
+          description: 'Visualisez vos rendez-vous à venir et passés',
+          emoji: '🧾',
+          accent: 'linear-gradient(135deg, #fef3c7, #fde68a)'
+        },
+        {
+          route: '/profile',
+          label: 'Mon espace santé',
+          description: 'Mettez à jour vos informations personnelles en toute simplicité',
+          emoji: '💠',
+          accent: 'linear-gradient(135deg, #cffafe, #a5f3fc)'
+        }
+      ];
+    }
+
+    if (role === UserRole.DOCTOR) {
+      return [
+        {
+          route: '/calendar',
+          label: 'Calendrier intelligent',
+          description: 'Une vue claire de votre journée de consultations',
+          emoji: '📆',
+          accent: 'linear-gradient(135deg, #d1fae5, #a7f3d0)'
+        },
+        {
+          route: '/appointments',
+          label: 'Suivi des rendez-vous',
+          description: 'Confirmez, adaptez et optimisez vos créneaux',
+          emoji: '🩺',
+          accent: 'linear-gradient(135deg, #fae8ff, #f5d0fe)'
+        },
+        {
+          route: '/profile',
+          label: 'Profil professionnel',
+          description: 'Affinez vos informations et votre disponibilité',
+          emoji: '🎯',
+          accent: 'linear-gradient(135deg, #fee2e2, #fecaca)'
+        }
+      ];
+    }
+
+    if (role === UserRole.ADMIN) {
+      return [
+        {
+          route: '/users',
+          label: 'Gestion des comptes',
+          description: 'Pilotez vos équipes et leurs accès en toute fluidité',
+          emoji: '🧑‍🤝‍🧑',
+          accent: 'linear-gradient(135deg, #e0f2fe, #bae6fd)'
+        },
+        {
+          route: '/appointments',
+          label: 'Surveillance des RDV',
+          description: 'Vérifiez l’équilibre de vos confirmations et absences',
+          emoji: '🛰️',
+          accent: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)'
+        },
+        {
+          route: '/doctors',
+          label: 'Communauté médicale',
+          description: 'Accompagnez les praticiens et suivez leur activité',
+          emoji: '🏥',
+          accent: 'linear-gradient(135deg, #ede9fe, #ddd6fe)'
+        }
+      ];
+    }
+
+    return [];
+  }
+
+  get heroHighlights(): HeroHighlight[] {
+    const highlights: HeroHighlight[] = [];
+    const next = this.upcomingAppointments[0];
+
+    if (next) {
+      highlights.push({
+        emoji: '📅',
+        label: 'Prochain rendez-vous',
+        value: `${this.formatAppointmentDate(next.appointmentDate)} • ${this.getTime(next.appointmentDate)}`
+      });
+    }
+
+    const role = this.currentUser?.role;
+
+    if (role === UserRole.PATIENT) {
+      highlights.push({
+        emoji: '🧑‍⚕️',
+        label: 'Médecin référent',
+        value: next?.doctor ? `Dr ${this.formatFullName(next.doctor.firstName, next.doctor.lastName)}` : 'Sélectionnez votre spécialiste'
+      });
+    } else if (role === UserRole.DOCTOR) {
+      const pending = this.upcomingAppointments.filter((appointment) => appointment.status === AppointmentStatus.PENDING).length;
+      highlights.push({
+        emoji: '🤝',
+        label: 'Suivi patient',
+        value: pending > 0 ? `${pending} rendez-vous à confirmer` : 'Agenda parfaitement synchronisé'
+      });
+    } else if (role === UserRole.ADMIN) {
+      const confirmationHighlight = this.adminHighlights.find((highlight) => highlight.label.includes('confirmation'));
+      const userStat = this.stats.find((stat) => stat.title.toLowerCase().includes('utilisateur'));
+
+      if (confirmationHighlight) {
+        highlights.push({
+          emoji: '🚦',
+          label: 'Taux de confirmation',
+          value: confirmationHighlight.value
+        });
+      }
+
+      if (userStat) {
+        highlights.push({
+          emoji: '🌐',
+          label: 'Utilisateurs actifs',
+          value: `${userStat.value}`
+        });
+      }
+    }
+
+    return highlights;
+  }
+
+  getUserInitials(): string {
+    const first = this.currentUser?.firstName?.charAt(0) ?? '';
+    const last = this.currentUser?.lastName?.charAt(0) ?? '';
+    const initials = `${first}${last}`.trim();
+    return initials ? initials.toUpperCase() : '🙂';
+  }
+
+  getMoodEmoji(): string {
+    switch (this.currentUser?.role) {
+      case UserRole.ADMIN:
+        return '🧭';
+      case UserRole.DOCTOR:
+        return '🩺';
+      case UserRole.PATIENT:
+        return '🌿';
+      default:
+        return '✨';
+    }
+  }
+
+  getTimeGreeting(): string {
+    const hour = new Date().getHours();
+
+    if (hour < 12) {
+      return 'Matin serein';
+    }
+    if (hour < 18) {
+      return 'Après-midi dynamique';
+    }
+    return 'Soirée détendue';
+  }
+
   getStatusLabel(status: AppointmentStatus): string {
     const labels: Record<AppointmentStatus, string> = {
       [AppointmentStatus.PENDING]: 'En attente',
@@ -152,6 +348,17 @@ export class DashboardComponent {
       [AppointmentStatus.NO_SHOW]: 'Absent'
     };
     return labels[status];
+  }
+
+  getStatusEmoji(status: AppointmentStatus): string {
+    const emojis: Record<AppointmentStatus, string> = {
+      [AppointmentStatus.PENDING]: '🕒',
+      [AppointmentStatus.CONFIRMED]: '✅',
+      [AppointmentStatus.CANCELLED]: '❌',
+      [AppointmentStatus.COMPLETED]: '🏁',
+      [AppointmentStatus.NO_SHOW]: '⚠️'
+    };
+    return emojis[status];
   }
 
   getDay(dateIso: string): string {
@@ -180,6 +387,36 @@ export class DashboardComponent {
     }
 
     return `${appointment.patient?.firstName ?? ''} ${appointment.patient?.lastName ?? ''} • Dr. ${appointment.doctor?.firstName ?? ''} ${appointment.doctor?.lastName ?? ''}`.trim();
+  }
+
+  getAppointmentContext(appointment: Appointment): string {
+    if (!this.currentUser) {
+      return '';
+    }
+
+    if (this.currentUser.role === UserRole.PATIENT) {
+      return appointment.doctor ? `Avec Dr ${this.formatFullName(appointment.doctor.firstName, appointment.doctor.lastName)}` : 'Médecin à confirmer';
+    }
+
+    if (this.currentUser.role === UserRole.DOCTOR) {
+      return appointment.patient ? `Avec ${this.formatFullName(appointment.patient.firstName, appointment.patient.lastName)}` : 'Patient à confirmer';
+    }
+
+    const doctorName = appointment.doctor ? `Dr ${this.formatFullName(appointment.doctor.firstName, appointment.doctor.lastName)}` : 'Médecin non renseigné';
+    const patientName = appointment.patient ? this.formatFullName(appointment.patient.firstName, appointment.patient.lastName) : 'Patient non renseigné';
+
+    return `${patientName} • ${doctorName}`;
+  }
+
+  private formatFullName(firstName?: string | null, lastName?: string | null): string {
+    const formatted = `${firstName ?? ''} ${lastName ?? ''}`.trim();
+    return formatted || 'Non renseigné';
+  }
+
+  private formatAppointmentDate(dateIso: string): string {
+    const date = new Date(dateIso);
+    const formatted = date.toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' });
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   }
 
   private loadAdminMetrics(): void {

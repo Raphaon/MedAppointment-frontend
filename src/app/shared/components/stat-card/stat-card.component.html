@@ -1,12 +1,14 @@
 <mat-card class="stat-card"
-          [style.border-left-color]="color"
+          [style.--stat-accent]="color"
           [class.clickable]="routerLink"
           [routerLink]="routerLink">
   <mat-card-content>
-    <div class="stat-header">
-      <mat-icon [style.color]="color">{{ icon }}</mat-icon>
-      <span class="stat-value">{{ value }}</span>
+    <div class="stat-icon">
+      <mat-icon>{{ icon }}</mat-icon>
     </div>
-    <p class="stat-title">{{ title }}</p>
+    <div class="stat-info">
+      <span class="stat-value">{{ value }}</span>
+      <p class="stat-title">{{ title }}</p>
+    </div>
   </mat-card-content>
 </mat-card>
