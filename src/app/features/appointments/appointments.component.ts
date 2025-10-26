@@ -6,8 +6,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AppointmentService } from '@app/core/services/appointment.service';
 import { Appointment, AppointmentStatus } from '@app/core/models';
+import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-appointments',
@@ -19,7 +22,9 @@ import { Appointment, AppointmentStatus } from '@app/core/models';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatDialogModule,
+    ConfirmDialogComponent
   ],
   template: `
     <div class="appointments-container">
@@ -141,7 +146,8 @@ export class AppointmentsComponent implements OnInit {
 
   constructor(
     private appointmentService: AppointmentService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -160,17 +166,28 @@ export class AppointmentsComponent implements OnInit {
   }
 
   cancelAppointment(id: string): void {
-    if (confirm('Voulez-vous vraiment annuler ce rendez-vous ?')) {
-      this.appointmentService.cancelAppointment(id).subscribe({
-        next: () => {
-          this.snackBar.open('Rendez-vous annulé', 'Fermer', { duration: 3000 });
-          this.loadAppointments();
-        },
-        error: () => {
-          this.snackBar.open('Erreur lors de l\'annulation', 'Fermer', { duration: 3000 });
-        }
-      });
-    }
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Annuler le rendez-vous',
+        message: 'Voulez-vous vraiment annuler ce rendez-vous ?',
+        confirmLabel: 'Annuler le rendez-vous',
+        icon: 'event_busy'
+      },
+      autoFocus: false,
+      restoreFocus: false
+    }).afterClosed().pipe(take(1)).subscribe((confirmed) => {
+      if (confirmed) {
+        this.appointmentService.cancelAppointment(id).subscribe({
+          next: () => {
+            this.snackBar.open('Rendez-vous annulé', 'Fermer', { duration: 3000 });
+            this.loadAppointments();
+          },
+          error: () => {
+            this.snackBar.open('Erreur lors de l\'annulation', 'Fermer', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 
   getStatusLabel(status: AppointmentStatus): string {

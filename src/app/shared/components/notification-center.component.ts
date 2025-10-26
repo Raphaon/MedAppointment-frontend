@@ -7,6 +7,9 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { NotificationService, Notification } from '@app/core/services/notification.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-notification-center',
@@ -18,7 +21,9 @@ import { NotificationService, Notification } from '@app/core/services/notificati
     MatIconModule,
     MatBadgeModule,
     MatMenuModule,
-    MatDividerModule
+    MatDividerModule,
+    MatDialogModule,
+    ConfirmDialogComponent
   ],
   template: `
     <button mat-icon-button [matMenuTriggerFor]="notificationMenu" 
@@ -223,7 +228,10 @@ export class NotificationCenterComponent implements OnInit {
   notifications: Notification[] = [];
   unreadCount = 0;
 
-  constructor(private notificationService: NotificationService) {}
+  constructor(
+    private notificationService: NotificationService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.notificationService.notifications$.subscribe((notifications: Notification[]) => {
@@ -275,8 +283,19 @@ export class NotificationCenterComponent implements OnInit {
   }
 
   clearAll(): void {
-    if (confirm('Voulez-vous vraiment supprimer toutes les notifications ?')) {
-      this.notificationService.clearAll();
-    }
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Tout supprimer ?',
+        message: 'Voulez-vous vraiment supprimer toutes les notifications ? Cette action est irréversible.',
+        confirmLabel: 'Tout supprimer',
+        icon: 'delete_sweep'
+      },
+      autoFocus: false,
+      restoreFocus: false
+    }).afterClosed().pipe(take(1)).subscribe((confirmed) => {
+      if (confirmed) {
+        this.notificationService.clearAll();
+      }
+    });
   }
 }

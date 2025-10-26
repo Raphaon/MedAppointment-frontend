@@ -29,7 +29,10 @@ export class NotificationService {
   private loadNotifications(): void {
     const stored = localStorage.getItem('notifications');
     if (stored) {
-      const notifications: Notification[] = JSON.parse(stored);
+      const notifications: Notification[] = JSON.parse(stored).map((notification: any) => ({
+        ...notification,
+        timestamp: new Date(notification.timestamp)
+      }));
       this.notificationsSubject.next(notifications);
       this.updateUnreadCount();
     }
