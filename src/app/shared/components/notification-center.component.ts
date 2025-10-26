@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,6 +7,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { NotificationService, Notification } from '@app/core/services/notification.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-notification-center',
@@ -21,9 +22,9 @@ import { NotificationService, Notification } from '@app/core/services/notificati
     MatDividerModule
   ],
   template: `
-    <button mat-icon-button [matMenuTriggerFor]="notificationMenu" 
-            [matBadge]="unreadCount" 
-            [matBadgeHidden]="unreadCount === 0"
+    <button mat-icon-button [matMenuTriggerFor]="notificationMenu"
+            [matBadge]="(unreadCount$ | async) ?? 0"
+            [matBadgeHidden]="(unreadCount$ | async) === 0"
             matBadgeColor="warn">
       <mat-icon>notifications</mat-icon>
     </button>
@@ -31,16 +32,18 @@ import { NotificationService, Notification } from '@app/core/services/notificati
     <mat-menu #notificationMenu="matMenu" class="notification-menu">
       <div class="notification-header" (click)="$event.stopPropagation()">
         <h3>Notifications</h3>
-        <button mat-button (click)="markAllAsRead()" *ngIf="unreadCount > 0">
-          <mat-icon>done_all</mat-icon>
-          Tout marquer lu
-        </button>
+        <ng-container *ngIf="unreadCount$ | async as unreadCount">
+          <button mat-button (click)="markAllAsRead()" *ngIf="unreadCount > 0">
+            <mat-icon>done_all</mat-icon>
+            Tout marquer lu
+          </button>
+        </ng-container>
       </div>
 
       <mat-divider></mat-divider>
 
-      <div class="notifications-list" *ngIf="notifications.length > 0">
-        <div *ngFor="let notification of notifications" 
+      <div class="notifications-list" *ngIf="notifications$ | async as notifications; else noNotifications">
+        <div *ngFor="let notification of notifications"
              class="notification-item"
              [class.unread]="!notification.read"
              [class.info]="notification.type === 'info'"
@@ -67,14 +70,16 @@ import { NotificationService, Notification } from '@app/core/services/notificati
         </div>
       </div>
 
-      <div class="no-notifications" *ngIf="notifications.length === 0">
-        <mat-icon>notifications_none</mat-icon>
-        <p>Aucune notification</p>
-      </div>
+      <ng-template #noNotifications>
+        <div class="no-notifications">
+          <mat-icon>notifications_none</mat-icon>
+          <p>Aucune notification</p>
+        </div>
+      </ng-template>
 
-      <mat-divider *ngIf="notifications.length > 0"></mat-divider>
+      <mat-divider *ngIf="(notifications$ | async)?.length"></mat-divider>
 
-      <div class="notification-footer" *ngIf="notifications.length > 0" (click)="$event.stopPropagation()">
+      <div class="notification-footer" *ngIf="(notifications$ | async)?.length" (click)="$event.stopPropagation()">
         <button mat-button color="warn" (click)="clearAll()">
           <mat-icon>delete_sweep</mat-icon>
           Tout supprimer
@@ -219,21 +224,11 @@ import { NotificationService, Notification } from '@app/core/services/notificati
     }
   `]
 })
-export class NotificationCenterComponent implements OnInit {
-  notifications: Notification[] = [];
-  unreadCount = 0;
+export class NotificationCenterComponent {
+  notifications$: Observable<Notification[]> = this.notificationService.notifications$;
+  unreadCount$: Observable<number> = this.notificationService.unreadCount$;
 
   constructor(private notificationService: NotificationService) {}
-
-  ngOnInit(): void {
-    this.notificationService.notifications$.subscribe((notifications: Notification[]) => {
-      this.notifications = notifications;
-    });
-
-    this.notificationService.unreadCount$.subscribe((count: number) => {
-      this.unreadCount = count;
-    });
-  }
 
   getIcon(type: string): string {
     const icons: any = {

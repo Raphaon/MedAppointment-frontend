@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -16,6 +16,8 @@ import { AppointmentService } from '@app/core/services/appointment.service';
 import { DoctorService } from '@app/core/services/doctor.service';
 import { AuthService } from '@app/core/services/auth.service';
 import { DoctorProfile } from '@app/core/models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BehaviorSubject, Observable, catchError, combineLatest, map, of, shareReplay } from 'rxjs';
 
 @Component({
   selector: 'app-create-appointment',
@@ -49,9 +51,9 @@ import { DoctorProfile } from '@app/core/models';
             
             <mat-form-field class="full-width" appearance="outline">
               <mat-label>Choisir un médecin</mat-label>
-              <mat-select formControlName="doctorId" (selectionChange)="onDoctorChange($event)">
-                <mat-option *ngFor="let doctor of doctors" [value]="doctor.userId">
-                  Dr. {{ doctor.user?.firstName }} {{ doctor.user?.lastName }} 
+              <mat-select formControlName="doctorId">
+                <mat-option *ngFor="let doctor of (doctors$ | async) ?? []" [value]="doctor.userId">
+                  Dr. {{ doctor.user?.firstName }} {{ doctor.user?.lastName }}
                   - {{ getSpecialtyLabel(doctor.specialty) }}
                 </mat-option>
               </mat-select>
@@ -60,10 +62,10 @@ import { DoctorProfile } from '@app/core/models';
               </mat-error>
             </mat-form-field>
 
-            <div class="doctor-info" *ngIf="selectedDoctor">
+            <div class="doctor-info" *ngIf="selectedDoctor$ | async as selectedDoctor">
               <mat-icon>info</mat-icon>
               <div>
-                <p><strong>Disponibilité :</strong> 
+                <p><strong>Disponibilité :</strong>
                   {{ selectedDoctor.availableFrom }} - {{ selectedDoctor.availableTo }}
                 </p>
                 <p *ngIf="selectedDoctor.consultationFee">
@@ -218,12 +220,27 @@ import { DoctorProfile } from '@app/core/models';
   `]
 })
 export class CreateAppointmentComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   appointmentForm: FormGroup;
   loading = false;
-  doctors: DoctorProfile[] = [];
-  selectedDoctor: DoctorProfile | null = null;
   minDate = new Date();
   hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8h à 19h
+  private readonly selectedDoctorIdSubject = new BehaviorSubject<string | null>(null);
+  doctors$: Observable<DoctorProfile[]> = this.doctorService.getAllDoctors().pipe(
+    map((response: any) => response.doctors ?? []),
+    catchError(() => {
+      this.snackBar.open('Erreur lors du chargement des médecins', 'Fermer', { duration: 3000 });
+      return of([]);
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+  selectedDoctor$: Observable<DoctorProfile | null> = combineLatest([
+    this.doctors$,
+    this.selectedDoctorIdSubject.asObservable()
+  ]).pipe(
+    map(([doctors, doctorId]) => doctors.find(doctor => doctor.userId === doctorId) ?? null),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 
   specialties: any = {
     GENERAL_PRACTICE: 'Médecine générale',
@@ -257,38 +274,25 @@ export class CreateAppointmentComponent implements OnInit {
       reason: ['', [Validators.required, Validators.minLength(10)]],
       notes: ['']
     });
+
+    const initialDoctorId = this.appointmentForm.get('doctorId')?.value;
+    this.selectedDoctorIdSubject.next(initialDoctorId || null);
   }
 
   ngOnInit(): void {
-    this.loadDoctors();
-
-    // Pré-sélectionner un médecin si passé en paramètre
-    this.route.queryParams.subscribe((params: any) => {
-      if (params['doctorId']) {
-        this.appointmentForm.patchValue({ doctorId: params['doctorId'] });
-      }
-    });
-  }
-
-  loadDoctors(): void {
-    this.doctorService.getAllDoctors().subscribe({
-      next: (response: any) => {
-        this.doctors = response.doctors;
-        
-        // Si un doctorId est pré-sélectionné, charger ses infos
-        const preselectedDoctorId = this.appointmentForm.get('doctorId')?.value;
-        if (preselectedDoctorId) {
-          this.selectedDoctor = this.doctors.find((d: any) => d.userId === preselectedDoctorId) || null;
+    this.route.queryParams
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params: any) => {
+        if (params['doctorId']) {
+          this.appointmentForm.patchValue({ doctorId: params['doctorId'] });
         }
-      },
-      error: (error: any) => {
-        this.snackBar.open('Erreur lors du chargement des médecins', 'Fermer', { duration: 3000 });
-      }
-    });
-  }
+      });
 
-  onDoctorChange(event: any): void {
-    this.selectedDoctor = this.doctors.find((d: any) => d.userId === event.value) || null;
+    this.appointmentForm.get('doctorId')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((doctorId: string) => {
+        this.selectedDoctorIdSubject.next(doctorId || null);
+      });
   }
 
   getSpecialtyLabel(specialty: string): string {
@@ -321,17 +325,19 @@ export class CreateAppointmentComponent implements OnInit {
         notes: formValue.notes || undefined
       };
 
-      this.appointmentService.createAppointment(appointmentData).subscribe({
-        next: () => {
-          this.snackBar.open('✅ Rendez-vous créé avec succès !', 'Fermer', { duration: 5000 });
-          this.router.navigate(['/appointments']);
-        },
-        error: (error: any) => {
-          this.loading = false;
-          const errorMsg = error.error?.error || 'Erreur lors de la création du rendez-vous';
-          this.snackBar.open(errorMsg, 'Fermer', { duration: 5000 });
-        }
-      });
+      this.appointmentService.createAppointment(appointmentData)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.snackBar.open('✅ Rendez-vous créé avec succès !', 'Fermer', { duration: 5000 });
+            this.router.navigate(['/appointments']);
+          },
+          error: (error: any) => {
+            this.loading = false;
+            const errorMsg = error.error?.error || 'Erreur lors de la création du rendez-vous';
+            this.snackBar.open(errorMsg, 'Fermer', { duration: 5000 });
+          }
+        });
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -10,8 +10,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
-import { UserService } from '@app/core/services/user.service';
 import { User, UserRole } from '@app/core/models';
+import { UsersState } from './users.state';
+import { UserService } from '@app/core/services/user.service';
+import { Observable } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-users',
@@ -42,7 +45,7 @@ import { User, UserRole } from '@app/core/models';
       <div class="filters">
         <mat-form-field appearance="outline">
           <mat-label>Filtrer par rôle</mat-label>
-          <mat-select [(ngModel)]="selectedRole" (selectionChange)="onFilterChange()">
+          <mat-select [ngModel]="selectedRole$ | async" (ngModelChange)="onFilterChange($event)">
             <mat-option [value]="null">Tous les rôles</mat-option>
             <mat-option [value]="UserRole.ADMIN">Administrateurs</mat-option>
             <mat-option [value]="UserRole.DOCTOR">Médecins</mat-option>
@@ -54,15 +57,16 @@ import { User, UserRole } from '@app/core/models';
           <div class="stat-card">
             <mat-icon>people</mat-icon>
             <div>
-              <strong>{{ users.length }}</strong>
+              <strong>{{ (users$ | async)?.length ?? 0 }}</strong>
               <span>Utilisateurs</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="table-container" *ngIf="users.length > 0">
-        <table mat-table [dataSource]="users" class="mat-elevation-z2">
+      <ng-container *ngIf="users$ | async as users">
+        <div class="table-container" *ngIf="users.length > 0; else noUsers">
+          <table mat-table [dataSource]="users" class="mat-elevation-z2">
           
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>Nom</th>
@@ -129,15 +133,18 @@ import { User, UserRole } from '@app/core/models';
             </td>
           </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-      </div>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+      </ng-container>
 
-      <div class="no-data" *ngIf="users.length === 0">
-        <mat-icon>people_outline</mat-icon>
-        <p>Aucun utilisateur trouvé</p>
-      </div>
+      <ng-template #noUsers>
+        <div class="no-data">
+          <mat-icon>people_outline</mat-icon>
+          <p>Aucun utilisateur trouvé</p>
+        </div>
+      </ng-template>
     </div>
   `,
   styles: [`
@@ -269,34 +276,27 @@ import { User, UserRole } from '@app/core/models';
     }
   `]
 })
-export class UsersComponent implements OnInit {
-  users: User[] = [];
-  selectedRole: UserRole | null = null;
+export class UsersComponent {
+  private readonly destroyRef = inject(DestroyRef);
+  users$: Observable<User[]> = this.usersState.users$;
+  selectedRole$ = this.usersState.selectedRole$;
   displayedColumns: string[] = ['name', 'phone', 'role', 'status', 'createdAt', 'actions'];
   UserRole = UserRole;
 
   constructor(
     private userService: UserService,
+    private usersState: UsersState,
     private snackBar: MatSnackBar
-  ) {}
-
-  ngOnInit(): void {
-    this.loadUsers();
+  ) {
+    this.usersState.errors$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((message) => {
+        this.snackBar.open(message, 'Fermer', { duration: 3000 });
+      });
   }
 
-  loadUsers(): void {
-    this.userService.getAllUsers(this.selectedRole || undefined).subscribe({
-      next: (response: any) => {
-        this.users = response.users;
-      },
-      error: (error: any) => {
-        this.snackBar.open('Erreur lors du chargement des utilisateurs', 'Fermer', { duration: 3000 });
-      }
-    });
-  }
-
-  onFilterChange(): void {
-    this.loadUsers();
+  onFilterChange(role: UserRole | null): void {
+    this.usersState.setRole(role);
   }
 
   getRoleLabel(role: UserRole): string {
@@ -329,29 +329,33 @@ export class UsersComponent implements OnInit {
   toggleStatus(user: User): void {
     const action = user.isActive ? 'désactiver' : 'activer';
     if (confirm(`Voulez-vous vraiment ${action} cet utilisateur ?`)) {
-      this.userService.toggleUserStatus(user.id).subscribe({
-        next: () => {
-          this.snackBar.open(`Utilisateur ${action === 'désactiver' ? 'désactivé' : 'activé'}`, 'Fermer', { duration: 3000 });
-          this.loadUsers();
-        },
-        error: () => {
-          this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
-        }
-      });
+      this.userService.toggleUserStatus(user.id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.snackBar.open(`Utilisateur ${action === 'désactiver' ? 'désactivé' : 'activé'}`, 'Fermer', { duration: 3000 });
+            this.usersState.refresh();
+          },
+          error: () => {
+            this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
+          }
+        });
     }
   }
 
   deleteUser(user: User): void {
     if (confirm(`Voulez-vous vraiment supprimer ${user.firstName} ${user.lastName} ?`)) {
-      this.userService.deleteUser(user.id).subscribe({
-        next: () => {
-          this.snackBar.open('Utilisateur supprimé', 'Fermer', { duration: 3000 });
-          this.loadUsers();
-        },
-        error: () => {
-          this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
-        }
-      });
+      this.userService.deleteUser(user.id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Utilisateur supprimé', 'Fermer', { duration: 3000 });
+            this.usersState.refresh();
+          },
+          error: () => {
+            this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
+          }
+        });
     }
   }
 }
