@@ -1,189 +1,193 @@
+<div class="dashboard-layout">
+  <mat-toolbar class="toolbar">
+    <div class="brand">
+      <span class="brand-icon">🩺</span>
+      <div class="brand-copy">
+        <span class="brand-title">MedAppointment</span>
+        <span class="brand-subtitle">Gestion intelligente des soins</span>
+      </div>
+    </div>
 
-    <div class="dashboard-layout">
-      <mat-toolbar color="primary" class="toolbar">
-        <span class="logo">🏥 MedAppointment</span>
-        <span class="spacer"></span>
-        
-        <app-notification-center></app-notification-center>
-        
-        <button mat-icon-button [matMenuTriggerFor]="userMenu">
-          <mat-icon>account_circle</mat-icon>
-        </button>
-        
-        <mat-menu #userMenu="matMenu">
-          <div class="user-info">
-            <p class="user-name">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</p>
-            <p class="user-role">{{ getRoleLabel() }}</p>
-          </div>
-          <mat-divider></mat-divider>
-          <button mat-menu-item routerLink="/profile">
-            <mat-icon>person</mat-icon>
-            <span>Mon profil</span>
-          </button>
-          <button mat-menu-item (click)="logout()">
-            <mat-icon>logout</mat-icon>
-            <span>Déconnexion</span>
-          </button>
-        </mat-menu>
-      </mat-toolbar>
+    <span class="spacer"></span>
 
-      <div class="dashboard-content">
-        <div class="welcome-section">
-          <h1>👋 Bienvenue, {{ currentUser?.firstName }} !</h1>
-          <p class="subtitle">{{ getWelcomeMessage() }}</p>
+    <app-notification-center></app-notification-center>
+
+    <button mat-button class="profile-chip" [matMenuTriggerFor]="userMenu">
+      <span class="profile-avatar">{{ getUserInitials() }}</span>
+      <span class="profile-details">
+        <span class="profile-name">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</span>
+        <span class="profile-role">{{ getRoleLabel() }}</span>
+      </span>
+      <mat-icon>expand_more</mat-icon>
+    </button>
+
+    <mat-menu #userMenu="matMenu">
+      <div class="user-info">
+        <p class="user-name">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</p>
+        <p class="user-role">{{ getRoleLabel() }}</p>
+      </div>
+      <mat-divider></mat-divider>
+      <button mat-menu-item routerLink="/profile">
+        <mat-icon>person</mat-icon>
+        <span>Mon profil</span>
+      </button>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Déconnexion</span>
+      </button>
+    </mat-menu>
+  </mat-toolbar>
+
+  <div class="dashboard-content">
+    <section class="hero-card">
+      <div class="hero-greeting">
+        <span class="hero-emoji">{{ getMoodEmoji() }}</span>
+        <div class="hero-text">
+          <p class="hero-kicker">{{ getTimeGreeting() }}</p>
+          <h1>Bonjour {{ currentUser?.firstName }} 👋</h1>
+          <p class="hero-subtitle">{{ getWelcomeMessage() }}</p>
         </div>
+      </div>
 
-        <!-- Statistiques -->
-        <div class="stats-grid">
-          <app-stat-card
-            *ngFor="let stat of stats"
-            [title]="stat.title"
-            [value]="stat.value"
-            [icon]="stat.icon"
-            [color]="stat.color"
-            [routerLink]="stat.route">
-          </app-stat-card>
-        </div>
-
-        <!-- Actions rapides selon le rôle -->
-        <div class="actions-section">
-          <h2>Actions rapides</h2>
-          <div class="actions-grid">
-            
-            <!-- Actions Patient -->
-            <ng-container *ngIf="currentUser?.role === UserRole.PATIENT">
-              <mat-card class="action-card" routerLink="/doctors">
-                <mat-icon color="primary">search</mat-icon>
-                <h3>Trouver un médecin</h3>
-                <p>Parcourez notre liste de médecins qualifiés</p>
-              </mat-card>
-
-              <mat-card class="action-card" routerLink="/appointments/create">
-                <mat-icon color="accent">event</mat-icon>
-                <h3>Prendre RDV</h3>
-                <p>Réservez un rendez-vous avec votre médecin</p>
-              </mat-card>
-
-              <mat-card class="action-card" routerLink="/appointments">
-                <mat-icon color="warn">list</mat-icon>
-                <h3>Mes rendez-vous</h3>
-                <p>Consultez vos rendez-vous à venir</p>
-              </mat-card>
-
-              <mat-card class="action-card" routerLink="/profile">
-                <mat-icon>person</mat-icon>
-                <h3>Mon profil</h3>
-                <p>Gérez vos informations médicales</p>
-              </mat-card>
-            </ng-container>
-
-            <!-- Actions Médecin -->
-            <ng-container *ngIf="currentUser?.role === UserRole.DOCTOR">
-              <mat-card class="action-card" routerLink="/calendar">
-                <mat-icon color="primary">calendar_month</mat-icon>
-                <h3>Mon calendrier</h3>
-                <p>Vue calendrier de vos rendez-vous</p>
-              </mat-card>
-
-              <mat-card class="action-card" routerLink="/appointments">
-                <mat-icon color="accent">event</mat-icon>
-                <h3>Mes consultations</h3>
-                <p>Gérez vos rendez-vous patients</p>
-              </mat-card>
-
-              <mat-card class="action-card" routerLink="/profile">
-                <mat-icon color="warn">local_hospital</mat-icon>
-                <h3>Mon profil médecin</h3>
-                <p>Mettez à jour vos informations professionnelles</p>
-              </mat-card>
-            </ng-container>
-
-            <!-- Actions Admin -->
-            <ng-container *ngIf="currentUser?.role === UserRole.ADMIN">
-              <mat-card class="action-card" routerLink="/users">
-                <mat-icon color="primary">people</mat-icon>
-                <h3>Utilisateurs</h3>
-                <p>Gérez les utilisateurs de la plateforme</p>
-              </mat-card>
-
-              <mat-card class="action-card" routerLink="/appointments">
-                <mat-icon color="accent">event</mat-icon>
-                <h3>Tous les RDV</h3>
-                <p>Supervisez tous les rendez-vous</p>
-              </mat-card>
-
-              <mat-card class="action-card" routerLink="/doctors">
-                <mat-icon color="warn">local_hospital</mat-icon>
-                <h3>Médecins</h3>
-                <p>Liste des médecins inscrits</p>
-              </mat-card>
-            </ng-container>
-          </div>
-        </div>
-
-        <div class="admin-insights" *ngIf="currentUser?.role === UserRole.ADMIN">
-          <h2>📊 Analyse d'activité</h2>
-
-          <div class="insights-highlights">
-            <mat-card *ngFor="let highlight of adminHighlights" class="highlight-card">
-              <h3>{{ highlight.label }}</h3>
-              <p class="value">{{ highlight.value }}</p>
-              <p class="description" *ngIf="highlight.description">{{ highlight.description }}</p>
-            </mat-card>
-          </div>
-
-          <div class="insights-breakdown" *ngIf="statusBreakdown.length > 0 || adminTrends.length > 0">
-            <mat-card *ngIf="statusBreakdown.length > 0">
-              <h3>Répartition des statuts</h3>
-              <div class="status-chips">
-                <span class="status-chip" *ngFor="let status of statusBreakdown">
-                  <strong>{{ status.count }}</strong>
-                  {{ status.label }}
-                </span>
-              </div>
-            </mat-card>
-
-            <mat-card *ngIf="adminTrends.length > 0">
-              <h3>Tendance des 5 dernières semaines</h3>
-              <ul class="trend-list">
-                <li *ngFor="let trend of adminTrends">
-                  <span class="period">{{ trend.period }}</span>
-                  <span class="total">{{ trend.total }} RDV</span>
-                  <span class="delta" [class.positive]="trend.delta >= 0" [class.negative]="trend.delta < 0">
-                    <mat-icon>{{ trend.delta >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
-                    {{ trend.delta >= 0 ? '+' : ''}}{{ trend.delta }}
-                  </span>
-                  <span class="confirmed">{{ trend.confirmed }} confirmés</span>
-                </li>
-              </ul>
-            </mat-card>
-          </div>
-        </div>
-
-        <!-- Prochains RDV -->
-        <div class="upcoming-section" *ngIf="upcomingAppointments.length > 0">
-          <h2>📅 Prochains rendez-vous</h2>
-          <div class="appointments-list">
-            <mat-card *ngFor="let appointment of upcomingAppointments" class="appointment-card">
-              <div class="appointment-date">
-                <div class="day">{{ getDay(appointment.appointmentDate) }}</div>
-                <div class="month">{{ getMonth(appointment.appointmentDate) }}</div>
-              </div>
-              <div class="appointment-details">
-                <h3>{{ getAppointmentTitle(appointment) }}</h3>
-                <p class="time">
-                  <mat-icon>schedule</mat-icon>
-                  {{ getTime(appointment.appointmentDate) }}
-                </p>
-                <p class="reason">{{ appointment.reason }}</p>
-              </div>
-              <div class="appointment-status">
-                <span class="status-badge" [class]="appointment.status.toLowerCase()">
-                  {{ getStatusLabel(appointment.status) }}
-                </span>
-              </div>
-            </mat-card>
+      <div class="hero-highlights" *ngIf="heroHighlights.length > 0">
+        <div class="highlight-pill" *ngFor="let highlight of heroHighlights; trackBy: trackByHighlight">
+          <span class="pill-emoji">{{ highlight.emoji }}</span>
+          <div class="pill-text">
+            <span class="pill-label">{{ highlight.label }}</span>
+            <span class="pill-value">{{ highlight.value }}</span>
           </div>
         </div>
       </div>
-    </div>
+    </section>
+
+    <section class="stats-section" *ngIf="stats.length">
+      <div class="section-header">
+        <div>
+          <h2>Vue rapide</h2>
+          <p class="section-subtitle">Un panorama instantané de votre activité</p>
+        </div>
+        <span class="section-emoji">✨</span>
+      </div>
+      <div class="stats-grid">
+        <app-stat-card
+          *ngFor="let stat of stats; trackBy: trackByStat"
+          [title]="stat.title"
+          [value]="stat.value"
+          [icon]="stat.icon"
+          [color]="stat.color"
+          [routerLink]="stat.route">
+        </app-stat-card>
+      </div>
+    </section>
+
+    <section class="actions-section" *ngIf="quickActions.length > 0">
+      <div class="section-header">
+        <div>
+          <h2>Actions rapides</h2>
+          <p class="section-subtitle">Accédez à vos raccourcis prioritaires en un geste</p>
+        </div>
+        <span class="section-emoji">⚡️</span>
+      </div>
+      <div class="actions-grid">
+        <mat-card
+          class="action-card"
+          *ngFor="let action of quickActions; trackBy: trackByAction"
+          [routerLink]="action.route">
+          <div class="action-icon" [style.background]="action.accent">
+            <span>{{ action.emoji }}</span>
+          </div>
+          <div class="action-copy">
+            <h3>{{ action.label }}</h3>
+            <p>{{ action.description }}</p>
+          </div>
+          <mat-icon class="action-arrow">arrow_forward</mat-icon>
+        </mat-card>
+      </div>
+    </section>
+
+    <section class="admin-insights" *ngIf="currentUser?.role === UserRole.ADMIN">
+      <div class="section-header">
+        <div>
+          <h2>Tableau de pilotage</h2>
+          <p class="section-subtitle">Surveillez la santé de votre plateforme en temps réel</p>
+        </div>
+        <span class="section-emoji">📊</span>
+      </div>
+
+      <div class="insights-highlights" *ngIf="adminHighlights.length > 0">
+        <mat-card *ngFor="let highlight of adminHighlights" class="highlight-card">
+          <span class="highlight-emoji">🎯</span>
+          <h3>{{ highlight.label }}</h3>
+          <p class="value">{{ highlight.value }}</p>
+          <p class="description" *ngIf="highlight.description">{{ highlight.description }}</p>
+        </mat-card>
+      </div>
+
+      <div class="insights-breakdown" *ngIf="statusBreakdown.length > 0 || adminTrends.length > 0">
+        <mat-card *ngIf="statusBreakdown.length > 0" class="insight-card">
+          <div class="insight-card-header">
+            <span>Répartition des statuts</span>
+            <span class="insight-icon">🧩</span>
+          </div>
+          <div class="status-chips">
+            <span class="status-chip" *ngFor="let status of statusBreakdown">
+              <strong>{{ status.count }}</strong>
+              {{ status.label }}
+            </span>
+          </div>
+        </mat-card>
+
+        <mat-card *ngIf="adminTrends.length > 0" class="insight-card">
+          <div class="insight-card-header">
+            <span>Tendance des 5 dernières semaines</span>
+            <span class="insight-icon">📈</span>
+          </div>
+          <ul class="trend-list">
+            <li *ngFor="let trend of adminTrends">
+              <span class="period">{{ trend.period }}</span>
+              <span class="total">{{ trend.total }} RDV</span>
+              <span class="delta" [class.positive]="trend.delta >= 0" [class.negative]="trend.delta < 0">
+                <span class="delta-emoji">{{ trend.delta >= 0 ? '🚀' : '📉' }}</span>
+                {{ trend.delta >= 0 ? '+' : ''}}{{ trend.delta }}
+              </span>
+              <span class="confirmed">{{ trend.confirmed }} confirmés</span>
+            </li>
+          </ul>
+        </mat-card>
+      </div>
+    </section>
+
+    <section class="upcoming-section" *ngIf="upcomingAppointments.length > 0">
+      <div class="section-header">
+        <div>
+          <h2>Prochains rendez-vous</h2>
+          <p class="section-subtitle">Gardez une longueur d'avance sur votre agenda</p>
+        </div>
+        <span class="section-emoji">📅</span>
+      </div>
+      <div class="appointments-list">
+        <mat-card *ngFor="let appointment of upcomingAppointments" class="appointment-card">
+          <div class="appointment-date">
+            <span class="day">{{ getDay(appointment.appointmentDate) }}</span>
+            <span class="month">{{ getMonth(appointment.appointmentDate) }}</span>
+          </div>
+          <div class="appointment-details">
+            <h3>{{ getAppointmentTitle(appointment) }}</h3>
+            <p class="context">{{ getAppointmentContext(appointment) }}</p>
+            <p class="time">
+              <mat-icon>schedule</mat-icon>
+              {{ getTime(appointment.appointmentDate) }}
+            </p>
+            <p class="reason" *ngIf="appointment.reason">{{ appointment.reason }}</p>
+          </div>
+          <div class="appointment-status">
+            <span class="status-emoji">{{ getStatusEmoji(appointment.status) }}</span>
+            <span class="status-badge" [class]="appointment.status.toLowerCase()">
+              {{ getStatusLabel(appointment.status) }}
+            </span>
+          </div>
+        </mat-card>
+      </div>
+    </section>
+  </div>
+</div>
