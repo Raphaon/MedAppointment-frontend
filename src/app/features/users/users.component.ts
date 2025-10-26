@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -11,11 +11,17 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
-import { UserService } from '@app/core/services/user.service';
 import { User, UserRole } from '@app/core/models';
+<<<<<<< HEAD
 import { StatCardComponent } from '@app/shared/components/stat-card/stat-card.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
 import { take } from 'rxjs';
+=======
+import { UsersState } from './users.state';
+import { UserService } from '@app/core/services/user.service';
+import { Observable } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+>>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
 
 @Component({
   selector: 'app-users',
@@ -39,36 +45,273 @@ import { take } from 'rxjs';
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss']
 
+<<<<<<< HEAD
+=======
+      <div class="filters">
+        <mat-form-field appearance="outline">
+          <mat-label>Filtrer par rôle</mat-label>
+          <mat-select [ngModel]="selectedRole$ | async" (ngModelChange)="onFilterChange($event)">
+            <mat-option [value]="null">Tous les rôles</mat-option>
+            <mat-option [value]="UserRole.ADMIN">Administrateurs</mat-option>
+            <mat-option [value]="UserRole.DOCTOR">Médecins</mat-option>
+            <mat-option [value]="UserRole.PATIENT">Patients</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="stats">
+          <div class="stat-card">
+            <mat-icon>people</mat-icon>
+            <div>
+              <strong>{{ (users$ | async)?.length ?? 0 }}</strong>
+              <span>Utilisateurs</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ng-container *ngIf="users$ | async as users">
+        <div class="table-container" *ngIf="users.length > 0; else noUsers">
+          <table mat-table [dataSource]="users" class="mat-elevation-z2">
+          
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Nom</th>
+            <td mat-cell *matCellDef="let user">
+              <div class="user-cell">
+                <mat-icon class="user-avatar">{{ getRoleIcon(user.role) }}</mat-icon>
+                <div>
+                  <strong>{{ user.firstName }} {{ user.lastName }}</strong>
+                  <br>
+                  <small>{{ user.email }}</small>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="phone">
+            <th mat-header-cell *matHeaderCellDef>Téléphone</th>
+            <td mat-cell *matCellDef="let user">
+              {{ user.phone || 'Non renseigné' }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>Rôle</th>
+            <td mat-cell *matCellDef="let user">
+              <mat-chip [color]="getRoleColor(user.role)" selected>
+                {{ getRoleLabel(user.role) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let user">
+              <mat-chip [color]="user.isActive ? 'primary' : ''" [selected]="user.isActive">
+                {{ user.isActive ? 'Actif' : 'Inactif' }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>Inscription</th>
+            <td mat-cell *matCellDef="let user">
+              {{ user.createdAt | date:'dd/MM/yyyy' }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let user">
+              <button mat-icon-button 
+                      [color]="user.isActive ? 'warn' : 'primary'"
+                      (click)="toggleStatus(user)"
+                      [matTooltip]="user.isActive ? 'Désactiver' : 'Activer'">
+                <mat-icon>{{ user.isActive ? 'block' : 'check_circle' }}</mat-icon>
+              </button>
+              
+              <button mat-icon-button color="warn" 
+                      (click)="deleteUser(user)"
+                      matTooltip="Supprimer"
+                      *ngIf="user.role !== UserRole.ADMIN">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+      </ng-container>
+
+      <ng-template #noUsers>
+        <div class="no-data">
+          <mat-icon>people_outline</mat-icon>
+          <p>Aucun utilisateur trouvé</p>
+        </div>
+      </ng-template>
+    </div>
+  `,
+  styles: [`
+    .users-container {
+      padding: 24px;
+      max-width: 1600px;
+      margin: 0 auto;
+      background-color: #f5f5f5;
+      min-height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      margin: 0;
+      color: #333;
+    }
+
+    .filters {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      margin-bottom: 24px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .filters mat-form-field {
+      width: 300px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 16px;
+      flex: 1;
+      justify-content: flex-end;
+    }
+
+    .stat-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      color: white;
+    }
+
+    .stat-card mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 24px;
+    }
+
+    .stat-card span {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+    }
+
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #667eea;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .user-cell strong {
+      display: block;
+      color: #333;
+    }
+
+    .user-cell small {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .no-data mat-icon {
+      font-size: 72px;
+      width: 72px;
+      height: 72px;
+      color: #ccc;
+    }
+
+    .no-data p {
+      color: #666;
+      font-size: 18px;
+      margin-top: 16px;
+    }
+  `]
+>>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
 })
-export class UsersComponent implements OnInit {
-  users: User[] = [];
-  selectedRole: UserRole | null = null;
+export class UsersComponent {
+  private readonly destroyRef = inject(DestroyRef);
+  users$: Observable<User[]> = this.usersState.users$;
+  selectedRole$ = this.usersState.selectedRole$;
   displayedColumns: string[] = ['name', 'phone', 'role', 'status', 'createdAt', 'actions'];
   UserRole = UserRole;
 
   constructor(
     private userService: UserService,
+<<<<<<< HEAD
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
     this.loadUsers();
+=======
+    private usersState: UsersState,
+    private snackBar: MatSnackBar
+  ) {
+    this.usersState.errors$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((message) => {
+        this.snackBar.open(message, 'Fermer', { duration: 3000 });
+      });
+>>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
   }
 
-  loadUsers(): void {
-    this.userService.getAllUsers(this.selectedRole || undefined).subscribe({
-      next: (response: any) => {
-        this.users = response.users;
-      },
-      error: (error: any) => {
-        this.snackBar.open('Erreur lors du chargement des utilisateurs', 'Fermer', { duration: 3000 });
-      }
-    });
-  }
-
-  onFilterChange(): void {
-    this.loadUsers();
+  onFilterChange(role: UserRole | null): void {
+    this.usersState.setRole(role);
   }
 
   getRoleLabel(role: UserRole): string {
@@ -100,6 +343,7 @@ export class UsersComponent implements OnInit {
 
   toggleStatus(user: User): void {
     const action = user.isActive ? 'désactiver' : 'activer';
+<<<<<<< HEAD
     this.openConfirmationDialog({
       title: 'Confirmation',
       message: `Voulez-vous vraiment ${action} ${user.firstName} ${user.lastName} ?`,
@@ -111,11 +355,21 @@ export class UsersComponent implements OnInit {
           next: () => {
             this.snackBar.open(`Utilisateur ${action === 'désactiver' ? 'désactivé' : 'activé'}`, 'Fermer', { duration: 3000 });
             this.loadUsers();
+=======
+    if (confirm(`Voulez-vous vraiment ${action} cet utilisateur ?`)) {
+      this.userService.toggleUserStatus(user.id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.snackBar.open(`Utilisateur ${action === 'désactiver' ? 'désactivé' : 'activé'}`, 'Fermer', { duration: 3000 });
+            this.usersState.refresh();
+>>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
           },
           error: () => {
             this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
           }
         });
+<<<<<<< HEAD
       }
     });
   }
@@ -132,11 +386,25 @@ export class UsersComponent implements OnInit {
           next: () => {
             this.snackBar.open('Utilisateur supprimé', 'Fermer', { duration: 3000 });
             this.loadUsers();
+=======
+    }
+  }
+
+  deleteUser(user: User): void {
+    if (confirm(`Voulez-vous vraiment supprimer ${user.firstName} ${user.lastName} ?`)) {
+      this.userService.deleteUser(user.id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Utilisateur supprimé', 'Fermer', { duration: 3000 });
+            this.usersState.refresh();
+>>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
           },
           error: () => {
             this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
           }
         });
+<<<<<<< HEAD
       }
     });
   }
@@ -147,5 +415,8 @@ export class UsersComponent implements OnInit {
       autoFocus: false,
       restoreFocus: false
     }).afterClosed();
+=======
+    }
+>>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
   }
 }

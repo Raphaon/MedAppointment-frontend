@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -9,8 +9,13 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AppointmentService } from '@app/core/services/appointment.service';
 import { Appointment, AppointmentStatus } from '@app/core/models';
+<<<<<<< HEAD
 import { ConfirmDialogComponent } from '@app/shared/components/confirm-dialog/confirm-dialog.component';
 import { take } from 'rxjs';
+=======
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable, Subject, catchError, map, of, shareReplay, startWith, switchMap } from 'rxjs';
+>>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
 
 @Component({
   selector: 'app-appointments',
@@ -36,63 +41,67 @@ import { take } from 'rxjs';
         </button>
       </div>
 
-      <div class="appointments-list" *ngIf="appointments.length > 0">
-        <table mat-table [dataSource]="appointments" class="mat-elevation-z2">
-          <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef>Date</th>
-            <td mat-cell *matCellDef="let appointment">
-              {{ appointment.appointmentDate | date:'dd/MM/yyyy HH:mm' }}
-            </td>
-          </ng-container>
+      <ng-container *ngIf="appointments$ | async as appointments">
+        <div class="appointments-list" *ngIf="appointments.length > 0; else noAppointments">
+          <table mat-table [dataSource]="appointments" class="mat-elevation-z2">
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef>Date</th>
+              <td mat-cell *matCellDef="let appointment">
+                {{ appointment.appointmentDate | date:'dd/MM/yyyy HH:mm' }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="doctor">
-            <th mat-header-cell *matHeaderCellDef>Médecin</th>
-            <td mat-cell *matCellDef="let appointment">
-              Dr. {{ appointment.doctor?.firstName }} {{ appointment.doctor?.lastName }}
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="doctor">
+              <th mat-header-cell *matHeaderCellDef>Médecin</th>
+              <td mat-cell *matCellDef="let appointment">
+                Dr. {{ appointment.doctor?.firstName }} {{ appointment.doctor?.lastName }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="patient">
-            <th mat-header-cell *matHeaderCellDef>Patient</th>
-            <td mat-cell *matCellDef="let appointment">
-              {{ appointment.patient?.firstName }} {{ appointment.patient?.lastName }}
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="patient">
+              <th mat-header-cell *matHeaderCellDef>Patient</th>
+              <td mat-cell *matCellDef="let appointment">
+                {{ appointment.patient?.firstName }} {{ appointment.patient?.lastName }}
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="reason">
-            <th mat-header-cell *matHeaderCellDef>Motif</th>
-            <td mat-cell *matCellDef="let appointment">{{ appointment.reason }}</td>
-          </ng-container>
+            <ng-container matColumnDef="reason">
+              <th mat-header-cell *matHeaderCellDef>Motif</th>
+              <td mat-cell *matCellDef="let appointment">{{ appointment.reason }}</td>
+            </ng-container>
 
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Statut</th>
-            <td mat-cell *matCellDef="let appointment">
-              <mat-chip [color]="getStatusColor(appointment.status)" selected>
-                {{ getStatusLabel(appointment.status) }}
-              </mat-chip>
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Statut</th>
+              <td mat-cell *matCellDef="let appointment">
+                <mat-chip [color]="getStatusColor(appointment.status)" selected>
+                  {{ getStatusLabel(appointment.status) }}
+                </mat-chip>
+              </td>
+            </ng-container>
 
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let appointment">
-              <button mat-icon-button color="warn" 
-                      (click)="cancelAppointment(appointment.id)"
-                      *ngIf="appointment.status !== 'CANCELLED'">
-                <mat-icon>cancel</mat-icon>
-              </button>
-            </td>
-          </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let appointment">
+                <button mat-icon-button color="warn"
+                        (click)="cancelAppointment(appointment.id)"
+                        *ngIf="appointment.status !== 'CANCELLED'">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </td>
+            </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-      </div>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+      </ng-container>
 
-      <div class="no-data" *ngIf="appointments.length === 0">
-        <mat-icon>event_busy</mat-icon>
-        <p>Aucun rendez-vous trouvé</p>
-      </div>
+      <ng-template #noAppointments>
+        <div class="no-data">
+          <mat-icon>event_busy</mat-icon>
+          <p>Aucun rendez-vous trouvé</p>
+        </div>
+      </ng-template>
     </div>
   `,
   styles: [`
@@ -140,9 +149,24 @@ import { take } from 'rxjs';
     }
   `]
 })
-export class AppointmentsComponent implements OnInit {
-  appointments: Appointment[] = [];
+export class AppointmentsComponent {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly refreshSubject = new Subject<void>();
+
   displayedColumns: string[] = ['date', 'doctor', 'patient', 'reason', 'status', 'actions'];
+  appointments$: Observable<Appointment[]> = this.refreshSubject.pipe(
+    startWith(void 0),
+    switchMap(() =>
+      this.appointmentService.getMyAppointments().pipe(
+        map(response => response.appointments ?? []),
+        catchError(() => {
+          this.snackBar.open('Erreur lors du chargement des rendez-vous', 'Fermer', { duration: 3000 });
+          return of([]);
+        })
+      )
+    ),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 
   constructor(
     private appointmentService: AppointmentService,
@@ -150,22 +174,8 @@ export class AppointmentsComponent implements OnInit {
     private dialog: MatDialog
   ) {}
 
-  ngOnInit(): void {
-    this.loadAppointments();
-  }
-
-  loadAppointments(): void {
-    this.appointmentService.getMyAppointments().subscribe({
-      next: (response) => {
-        this.appointments = response.appointments;
-      },
-      error: (error) => {
-        this.snackBar.open('Erreur lors du chargement des rendez-vous', 'Fermer', { duration: 3000 });
-      }
-    });
-  }
-
   cancelAppointment(id: string): void {
+<<<<<<< HEAD
     this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Annuler le rendez-vous',
@@ -181,13 +191,26 @@ export class AppointmentsComponent implements OnInit {
           next: () => {
             this.snackBar.open('Rendez-vous annulé', 'Fermer', { duration: 3000 });
             this.loadAppointments();
+=======
+    if (confirm('Voulez-vous vraiment annuler ce rendez-vous ?')) {
+      this.appointmentService.cancelAppointment(id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Rendez-vous annulé', 'Fermer', { duration: 3000 });
+            this.refreshSubject.next();
+>>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
           },
           error: () => {
             this.snackBar.open('Erreur lors de l\'annulation', 'Fermer', { duration: 3000 });
           }
         });
+<<<<<<< HEAD
       }
     });
+=======
+    }
+>>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
   }
 
   getStatusLabel(status: AppointmentStatus): string {
