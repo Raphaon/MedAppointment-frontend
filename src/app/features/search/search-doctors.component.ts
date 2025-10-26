@@ -12,11 +12,13 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { DoctorService } from '@app/core/services/doctor.service';
 import { DoctorProfile, MedicalSpecialty } from '@app/core/models';
 import { DoctorCardComponent } from '@app/shared/components/doctor-card/doctor-card.component';
 import { MEDICAL_SPECIALTY_OPTIONS, getMedicalSpecialtyLabel } from '@app/shared/constants/medical.constants';
+import { DoctorDetailDialogComponent } from '@app/shared/components/doctor-detail-dialog/doctor-detail-dialog.component';
 
 @Component({
   selector: 'app-search-doctors',
@@ -35,7 +37,9 @@ import { MEDICAL_SPECIALTY_OPTIONS, getMedicalSpecialtyLabel } from '@app/shared
     MatCheckboxModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    DoctorCardComponent
+    MatDialogModule,
+    DoctorCardComponent,
+    DoctorDetailDialogComponent
   ],
   templateUrl: './search-doctors.component.html',
   styleUrls: ['./search-doctors.component.scss']
@@ -54,7 +58,8 @@ export class SearchDoctorsComponent implements OnInit {
     private fb: FormBuilder,
     private doctorService: DoctorService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {
     this.searchForm = this.fb.group({
       name: [''],
@@ -193,7 +198,15 @@ export class SearchDoctorsComponent implements OnInit {
   }
 
   viewDetails(doctor: DoctorProfile): void {
-    // TODO: Modal ou page de détails
-    this.snackBar.open(`Détails de Dr. ${doctor.user?.firstName} ${doctor.user?.lastName}`, 'Fermer', { duration: 3000 });
+    this.dialog.open(DoctorDetailDialogComponent, {
+      data: { doctor },
+      autoFocus: false,
+      restoreFocus: false,
+      width: '520px'
+    }).afterClosed().subscribe((action: 'book' | undefined) => {
+      if (action === 'book') {
+        this.bookAppointment(doctor);
+      }
+    });
   }
 }

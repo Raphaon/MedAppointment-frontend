@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+=======
+import { Component, OnDestroy, OnInit } from '@angular/core';
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -16,6 +20,7 @@ import { AppointmentService } from '@app/core/services/appointment.service';
 import { DoctorService } from '@app/core/services/doctor.service';
 import { AuthService } from '@app/core/services/auth.service';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { DoctorProfile, MedicalSpecialty } from '@app/core/models';
 import { getMedicalSpecialtyLabel } from '@app/shared/constants/medical.constants';
 =======
@@ -23,6 +28,13 @@ import { DoctorProfile } from '@app/core/models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Observable, catchError, combineLatest, map, of, shareReplay } from 'rxjs';
 >>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
+=======
+import { Appointment, AppointmentStatus, DoctorProfile, MedicalSpecialty } from '@app/core/models';
+import { getMedicalSpecialtyLabel } from '@app/shared/constants/medical.constants';
+import { MatListModule } from '@angular/material/list';
+import { Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
 
 @Component({
   selector: 'app-create-appointment',
@@ -40,7 +52,8 @@ import { BehaviorSubject, Observable, catchError, combineLatest, map, of, shareR
     MatNativeDateModule,
     MatIconModule,
     MatSnackBarModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatListModule
   ],
 <<<<<<< HEAD
   templateUrl: './create-appointment.component.html',
@@ -229,12 +242,17 @@ import { BehaviorSubject, Observable, catchError, combineLatest, map, of, shareR
   `]
 >>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
 })
+<<<<<<< HEAD
 export class CreateAppointmentComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+=======
+export class CreateAppointmentComponent implements OnInit, OnDestroy {
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
   appointmentForm: FormGroup;
   loading = false;
   minDate = new Date();
   hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8h à 19h
+<<<<<<< HEAD
   private readonly selectedDoctorIdSubject = new BehaviorSubject<string | null>(null);
   doctors$: Observable<DoctorProfile[]> = this.doctorService.getAllDoctors().pipe(
     map((response: any) => response.doctors ?? []),
@@ -251,6 +269,16 @@ export class CreateAppointmentComponent implements OnInit {
     map(([doctors, doctorId]) => doctors.find(doctor => doctor.userId === doctorId) ?? null),
     shareReplay({ bufferSize: 1, refCount: true })
   );
+=======
+  doctorAppointments: Appointment[] = [];
+  conflictingAppointments: Appointment[] = [];
+  slotStatus: 'idle' | 'checking' | 'available' | 'conflict' | 'outside-hours' = 'idle';
+  slotMessage = '';
+  availabilityLoading = false;
+
+  private availabilityKey: string | null = null;
+  private formChangesSub?: Subscription;
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
 
   constructor(
     private fb: FormBuilder,
@@ -276,19 +304,56 @@ export class CreateAppointmentComponent implements OnInit {
   }
 
   ngOnInit(): void {
+<<<<<<< HEAD
     this.route.queryParams
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((params: any) => {
         if (params['doctorId']) {
           this.appointmentForm.patchValue({ doctorId: params['doctorId'] });
+=======
+    this.loadDoctors();
+
+    // Pré-sélectionner un médecin si passé en paramètre
+    this.route.queryParams.subscribe((params: any) => {
+      if (params['doctorId']) {
+        this.appointmentForm.patchValue({ doctorId: params['doctorId'] });
+      }
+    });
+
+    this.observeFormChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.formChangesSub?.unsubscribe();
+  }
+
+  loadDoctors(): void {
+    this.doctorService.getAllDoctors().subscribe({
+      next: (response: any) => {
+        this.doctors = response.doctors;
+        
+        // Si un doctorId est pré-sélectionné, charger ses infos
+        const preselectedDoctorId = this.appointmentForm.get('doctorId')?.value;
+        if (preselectedDoctorId) {
+          this.selectedDoctor = this.doctors.find((d: any) => d.userId === preselectedDoctorId) || null;
+          this.fetchDoctorAppointmentsForSelectedDay();
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
         }
       });
 
+<<<<<<< HEAD
     this.appointmentForm.get('doctorId')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((doctorId: string) => {
         this.selectedDoctorIdSubject.next(doctorId || null);
       });
+=======
+  onDoctorChange(event: any): void {
+    this.selectedDoctor = this.doctors.find((d: any) => d.userId === event.value) || null;
+    this.availabilityKey = null;
+    this.fetchDoctorAppointmentsForSelectedDay();
+    this.evaluateSlot();
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
   }
 
   getSpecialtyLabel(specialty: MedicalSpecialty): string {
@@ -296,7 +361,9 @@ export class CreateAppointmentComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.appointmentForm.valid) {
+    this.evaluateSlot();
+
+    if (this.appointmentForm.valid && this.slotStatus === 'available') {
       this.loading = true;
 
       const formValue = this.appointmentForm.value;
@@ -321,6 +388,7 @@ export class CreateAppointmentComponent implements OnInit {
         notes: formValue.notes || undefined
       };
 
+<<<<<<< HEAD
       this.appointmentService.createAppointment(appointmentData)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
@@ -334,6 +402,189 @@ export class CreateAppointmentComponent implements OnInit {
             this.snackBar.open(errorMsg, 'Fermer', { duration: 5000 });
           }
         });
+=======
+      this.appointmentService.createAppointment(appointmentData).subscribe({
+        next: () => {
+          this.snackBar.open('✅ Rendez-vous créé avec succès !', 'Fermer', { duration: 5000 });
+          this.router.navigate(['/appointments']);
+        },
+        error: (error: any) => {
+          this.loading = false;
+          const errorMsg = error.error?.error || 'Erreur lors de la création du rendez-vous';
+          this.snackBar.open(errorMsg, 'Fermer', { duration: 5000 });
+        }
+      });
+    } else if (this.slotStatus === 'conflict') {
+      this.snackBar.open('Ce créneau est déjà réservé. Veuillez choisir une autre heure.', 'Fermer', { duration: 4000 });
+    } else if (this.slotStatus === 'outside-hours') {
+      this.snackBar.open('Le créneau sélectionné dépasse les horaires disponibles du médecin.', 'Fermer', { duration: 4000 });
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
     }
+  }
+
+  get submitDisabled(): boolean {
+    return this.appointmentForm.invalid || this.loading ||
+      this.slotStatus === 'conflict' || this.slotStatus === 'outside-hours' || this.slotStatus === 'checking';
+  }
+
+  getSlotStatusIcon(): string {
+    switch (this.slotStatus) {
+      case 'available':
+        return 'check_circle';
+      case 'conflict':
+        return 'event_busy';
+      case 'outside-hours':
+        return 'schedule';
+      case 'checking':
+        return 'sync';
+      default:
+        return 'event';
+    }
+  }
+
+  trackByAppointment(_: number, appointment: Appointment): string {
+    return appointment.id;
+  }
+
+  private observeFormChanges(): void {
+    this.formChangesSub = this.appointmentForm.valueChanges
+      .pipe(debounceTime(200))
+      .subscribe(() => {
+        this.fetchDoctorAppointmentsForSelectedDay();
+        this.evaluateSlot();
+      });
+  }
+
+  private fetchDoctorAppointmentsForSelectedDay(): void {
+    const doctorId = this.appointmentForm.get('doctorId')?.value;
+    const date = this.appointmentForm.get('appointmentDate')?.value;
+
+    if (!doctorId || !date) {
+      this.doctorAppointments = [];
+      this.availabilityKey = null;
+      return;
+    }
+
+    const normalizedDoctor = this.doctors.find((d) => d.userId === doctorId);
+    if (normalizedDoctor) {
+      this.selectedDoctor = normalizedDoctor;
+    }
+
+    const day = new Date(date);
+    const key = `${doctorId}_${day.toDateString()}`;
+    if (this.availabilityKey === key) {
+      return;
+    }
+
+    this.availabilityKey = key;
+    const startOfDay = new Date(day);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(day);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    this.availabilityLoading = true;
+    this.slotStatus = 'checking';
+    this.slotMessage = 'Vérification de la disponibilité du médecin...';
+
+    this.appointmentService.getDoctorAppointments(
+      doctorId,
+      startOfDay.toISOString(),
+      endOfDay.toISOString()
+    ).subscribe({
+      next: (response) => {
+        this.doctorAppointments = response.appointments || [];
+        this.availabilityLoading = false;
+        this.evaluateSlot();
+      },
+      error: () => {
+        this.availabilityLoading = false;
+        this.doctorAppointments = [];
+        this.availabilityKey = null;
+        this.slotStatus = 'idle';
+        this.slotMessage = '';
+        this.snackBar.open('Impossible de vérifier la disponibilité du médecin.', 'Fermer', { duration: 4000 });
+      }
+    });
+  }
+
+  private evaluateSlot(): void {
+    const doctorId = this.appointmentForm.get('doctorId')?.value;
+    const date = this.appointmentForm.get('appointmentDate')?.value;
+    const hour = this.appointmentForm.get('hour')?.value;
+    const minute = this.appointmentForm.get('minute')?.value;
+    const duration = Number(this.appointmentForm.get('duration')?.value || 0);
+
+    if (!doctorId || !date || !hour || minute === null || duration <= 0) {
+      this.slotStatus = 'idle';
+      this.slotMessage = '';
+      this.conflictingAppointments = [];
+      return;
+    }
+
+    const start = new Date(date);
+    start.setHours(parseInt(hour, 10), parseInt(minute, 10), 0, 0);
+    const end = new Date(start.getTime() + duration * 60000);
+
+    if (this.availabilityLoading) {
+      this.slotStatus = 'checking';
+      this.slotMessage = 'Vérification de la disponibilité du médecin...';
+      this.conflictingAppointments = [];
+      return;
+    }
+
+    if (!this.isWithinDoctorHours(start, end)) {
+      this.slotStatus = 'outside-hours';
+      this.slotMessage = 'Le créneau choisi dépasse les horaires disponibles du médecin.';
+      this.conflictingAppointments = [];
+      return;
+    }
+
+    const conflicts = this.getConflictingAppointments(start, end);
+    this.conflictingAppointments = conflicts;
+
+    if (conflicts.length > 0) {
+      this.slotStatus = 'conflict';
+      this.slotMessage = 'Ce créneau est déjà réservé par un autre rendez-vous.';
+    } else {
+      this.slotStatus = 'available';
+      this.slotMessage = 'Créneau disponible ✅';
+    }
+  }
+
+  private isWithinDoctorHours(start: Date, end: Date): boolean {
+    if (!this.selectedDoctor?.availableFrom || !this.selectedDoctor?.availableTo) {
+      return true;
+    }
+
+    const availabilityStart = this.buildDateFromTime(start, this.selectedDoctor.availableFrom);
+    const availabilityEnd = this.buildDateFromTime(start, this.selectedDoctor.availableTo);
+
+    if (availabilityEnd <= availabilityStart) {
+      availabilityEnd.setDate(availabilityEnd.getDate() + 1);
+    }
+
+    return start >= availabilityStart && end <= availabilityEnd;
+  }
+
+  private buildDateFromTime(base: Date, time: string): Date {
+    const [hourString, minuteString] = time.split(':');
+    const hours = parseInt(hourString, 10);
+    const minutes = parseInt(minuteString || '0', 10);
+    const date = new Date(base);
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  }
+
+  private getConflictingAppointments(start: Date, end: Date): Appointment[] {
+    return this.doctorAppointments.filter((appointment: Appointment) => {
+      if (appointment.status === AppointmentStatus.CANCELLED) {
+        return false;
+      }
+
+      const existingStart = new Date(appointment.appointmentDate);
+      const duration = appointment.duration && appointment.duration > 0 ? appointment.duration : 30;
+      const existingEnd = new Date(existingStart.getTime() + duration * 60000);
+      return existingStart < end && existingEnd > start;
+    });
   }
 }

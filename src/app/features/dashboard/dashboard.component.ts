@@ -20,6 +20,7 @@ import { StatCardComponent } from '@app/shared/components/stat-card/stat-card.co
 import { UserService } from '@app/core/services/user.service';
 import { DoctorService } from '@app/core/services/doctor.service';
 import { forkJoin } from 'rxjs';
+<<<<<<< HEAD
 =======
 import { Observable, catchError, forkJoin, map, of, shareReplay, switchMap } from 'rxjs';
 import { AppointmentService } from '@app/core/services/appointment.service';
@@ -29,6 +30,8 @@ import { Appointment, AppointmentStatus, DoctorProfile, MedicalSpecialty, User, 
 import { DoctorService } from '@app/core/services/doctor.service';
 import { UserService } from '@app/core/services/user.service';
 >>>>>>> remotes/origin/codex/conduct-complete-angular-code-review
+=======
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
 
 interface StatCard {
   title: string;
@@ -688,7 +691,13 @@ export class DashboardComponent {
 <<<<<<< HEAD
   stats: StatCard[] = [];
   upcomingAppointments: Appointment[] = [];
+<<<<<<< HEAD
   private adminStatsLoaded = false;
+=======
+  statusBreakdown: { status: AppointmentStatus; label: string; count: number }[] = [];
+  adminHighlights: { label: string; value: string; description?: string }[] = [];
+  adminTrends: { period: string; total: number; delta: number; confirmed: number }[] = [];
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
 
   constructor(
     private authService: AuthService,
@@ -708,10 +717,28 @@ export class DashboardComponent {
   }
 
   private loadDashboardData(): void {
+<<<<<<< HEAD
+=======
+    if (!this.currentUser) {
+      return;
+    }
+
+    if (this.currentUser.role === UserRole.ADMIN) {
+      this.loadAdminDashboard();
+      return;
+    }
+
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
     this.appointmentService.getMyAppointments().subscribe({
       next: (response: any) => {
         const appointments = response.appointments || [];
         this.upcomingAppointments = this.extractUpcomingAppointments(appointments);
+<<<<<<< HEAD
+=======
+        this.statusBreakdown = [];
+        this.adminHighlights = [];
+        this.adminTrends = [];
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
         this.buildStats(appointments);
       },
       error: (error: any) => {
@@ -720,6 +747,58 @@ export class DashboardComponent {
     });
   }
 
+<<<<<<< HEAD
+=======
+  private loadAdminDashboard(): void {
+    this.statusBreakdown = [];
+    this.adminHighlights = [];
+    this.adminTrends = [];
+
+    forkJoin({
+      appointments: this.appointmentService.getAllAppointments(),
+      users: this.userService.getAllUsers(),
+      doctors: this.doctorService.getAllDoctors()
+    }).subscribe({
+      next: ({ appointments, users, doctors }) => {
+        const appointmentList = appointments.appointments || [];
+        const appointmentCount = appointments.count ?? appointmentList.length;
+        const userCount = users?.count ?? users?.users?.length ?? 0;
+        const doctorCount = doctors?.count ?? doctors?.doctors?.length ?? 0;
+
+        this.upcomingAppointments = this.extractUpcomingAppointments(appointmentList);
+        this.stats = [
+          {
+            title: 'Total rendez-vous',
+            value: appointmentCount,
+            icon: 'event',
+            color: '#4caf50',
+            route: '/appointments'
+          },
+          {
+            title: 'Utilisateurs',
+            value: userCount,
+            icon: 'people',
+            color: '#2196f3',
+            route: '/users'
+          },
+          {
+            title: 'Médecins actifs',
+            value: doctorCount,
+            icon: 'local_hospital',
+            color: '#ff9800',
+            route: '/doctors'
+          }
+        ];
+
+        this.buildAdminInsights(appointmentList);
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des indicateurs administrateur:', error);
+      }
+    });
+  }
+
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
   private extractUpcomingAppointments(appointments: Appointment[]): Appointment[] {
     const now = new Date();
 
@@ -797,6 +876,7 @@ export class DashboardComponent {
     }
 
     if (this.currentUser.role === UserRole.ADMIN) {
+<<<<<<< HEAD
       this.stats = [
         {
           title: 'Total rendez-vous',
@@ -866,6 +946,114 @@ export class DashboardComponent {
         this.currentUser = user;
       });
 >>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
+=======
+      return;
+    }
+  }
+
+  private buildAdminInsights(appointments: Appointment[]): void {
+    this.statusBreakdown = this.buildStatusBreakdown(appointments);
+    this.adminHighlights = this.buildAdminHighlights(appointments);
+    this.adminTrends = this.buildAdminTrends(appointments);
+  }
+
+  private buildStatusBreakdown(appointments: Appointment[]): { status: AppointmentStatus; label: string; count: number }[] {
+    const statuses = [
+      AppointmentStatus.CONFIRMED,
+      AppointmentStatus.PENDING,
+      AppointmentStatus.CANCELLED,
+      AppointmentStatus.COMPLETED,
+      AppointmentStatus.NO_SHOW
+    ];
+
+    return statuses
+      .map((status) => ({
+        status,
+        label: this.getStatusLabel(status),
+        count: appointments.filter((appointment) => appointment.status === status).length
+      }))
+      .filter((item) => item.count > 0);
+  }
+
+  private buildAdminHighlights(appointments: Appointment[]): { label: string; value: string; description?: string }[] {
+    const total = appointments.length;
+    const safeTotal = total === 0 ? 1 : total;
+    const confirmed = appointments.filter((appointment) => appointment.status === AppointmentStatus.CONFIRMED).length;
+    const cancelled = appointments.filter((appointment) => appointment.status === AppointmentStatus.CANCELLED).length;
+    const noShow = appointments.filter((appointment) => appointment.status === AppointmentStatus.NO_SHOW).length;
+    const pending = appointments.filter((appointment) => appointment.status === AppointmentStatus.PENDING).length;
+    const upcoming30 = this.countUpcomingWithin(appointments, 30);
+
+    const confirmationRate = Math.round((confirmed / safeTotal) * 100);
+    const cancellationRate = Math.round(((cancelled + noShow) / safeTotal) * 100);
+
+    return [
+      {
+        label: 'Taux de confirmation',
+        value: `${confirmationRate}%`,
+        description: `${confirmed} confirmés sur ${total}`
+      },
+      {
+        label: 'Annulations & absences',
+        value: `${cancellationRate}%`,
+        description: `${cancelled + noShow} événements à surveiller`
+      },
+      {
+        label: 'Rendez-vous à venir (30j)',
+        value: `${upcoming30}`,
+        description: `${pending} en attente de validation`
+      }
+    ];
+  }
+
+  private buildAdminTrends(appointments: Appointment[]): { period: string; total: number; delta: number; confirmed: number }[] {
+    const trends: { period: string; total: number; delta: number; confirmed: number }[] = [];
+    const reference = new Date();
+
+    for (let weekOffset = 0; weekOffset < 5; weekOffset++) {
+      const start = this.startOfWeek(reference, weekOffset);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+
+      const weeklyAppointments = appointments.filter((appointment) => {
+        const appointmentDate = new Date(appointment.appointmentDate);
+        return appointmentDate >= start && appointmentDate <= end;
+      });
+
+      const period = `${start.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })} → ${end.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}`;
+      const confirmed = weeklyAppointments.filter((appointment) => appointment.status === AppointmentStatus.CONFIRMED).length;
+
+      trends.push({ period, total: weeklyAppointments.length, confirmed, delta: 0 });
+    }
+
+    return trends.map((trend, index) => {
+      const previous = trends[index + 1];
+      const delta = previous ? trend.total - previous.total : 0;
+      return { ...trend, delta };
+    });
+  }
+
+  private countUpcomingWithin(appointments: Appointment[], daysAhead: number): number {
+    const now = new Date();
+    const limit = new Date();
+    limit.setHours(23, 59, 59, 999);
+    limit.setDate(limit.getDate() + daysAhead);
+
+    return appointments.filter((appointment) => {
+      const appointmentDate = new Date(appointment.appointmentDate);
+      return appointmentDate >= now && appointmentDate <= limit && appointment.status !== AppointmentStatus.CANCELLED;
+    }).length;
+  }
+
+  private startOfWeek(reference: Date, weeksAgo: number): Date {
+    const date = new Date(reference);
+    date.setHours(0, 0, 0, 0);
+    const day = date.getDay();
+    const diff = (day + 6) % 7; // Lundi comme début de semaine
+    date.setDate(date.getDate() - diff - weeksAgo * 7);
+    return date;
+>>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
   }
 
   getRoleLabel(): string {

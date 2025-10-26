@@ -49,8 +49,8 @@
           <mat-form-field appearance="outline">
             <mat-label>Heure</mat-label>
             <mat-select formControlName="hour">
-              <mat-option *ngFor="let hour of hours" [value]="hour">
-                {{ hour }}h
+              <mat-option *ngFor="let hour of hours" [value]="hour.toString().padStart(2, '0')">
+                {{ hour | number:'2.0-0' }}h
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -64,6 +64,30 @@
               <mat-option value="45">45</mat-option>
             </mat-select>
           </mat-form-field>
+        </div>
+
+        <div class="availability-feedback" [ngClass]="slotStatus" *ngIf="slotStatus !== 'idle'">
+          <mat-icon>{{ getSlotStatusIcon() }}</mat-icon>
+          <span>{{ slotMessage }}</span>
+          <mat-spinner *ngIf="slotStatus === 'checking'" diameter="18"></mat-spinner>
+        </div>
+
+        <div class="conflicts-panel" *ngIf="conflictingAppointments.length > 0">
+          <h3>
+            <mat-icon color="warn">report_problem</mat-icon>
+            Créneaux en conflit
+          </h3>
+          <mat-list dense>
+            <mat-list-item *ngFor="let appointment of conflictingAppointments; trackBy: trackByAppointment">
+              <mat-icon matListIcon color="warn">event_busy</mat-icon>
+              <div matLine>
+                {{ appointment.appointmentDate | date:'dd/MM/yyyy HH:mm' }}
+              </div>
+              <div matLine class="secondary">
+                {{ appointment.reason }} • {{ appointment.duration }} min
+              </div>
+            </mat-list-item>
+          </mat-list>
         </div>
 
         <mat-form-field class="full-width" appearance="outline">
@@ -99,7 +123,7 @@
             Annuler
           </button>
           <button mat-raised-button color="primary" type="submit"
-                  [disabled]="appointmentForm.invalid || loading">
+                  [disabled]="submitDisabled">
             <span *ngIf="!loading">Confirmer le rendez-vous</span>
             <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
           </button>

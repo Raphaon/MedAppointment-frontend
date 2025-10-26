@@ -1,0 +1,88 @@
+<h2 mat-dialog-title>
+  <div class="header">
+    <div class="avatar" aria-hidden="true">
+      <mat-icon>local_hospital</mat-icon>
+    </div>
+    <div>
+      <div class="name">Dr. {{ doctor.user?.firstName }} {{ doctor.user?.lastName }}</div>
+      <div class="specialty">{{ getSpecialtyLabel(doctor.specialty) }}</div>
+    </div>
+  </div>
+</h2>
+
+<mat-dialog-content class="content">
+  <section class="bio" *ngIf="doctor.bio">
+    <h3>
+      <mat-icon>menu_book</mat-icon>
+      À propos
+    </h3>
+    <p>{{ doctor.bio }}</p>
+  </section>
+
+  <section class="details-grid">
+    <div>
+      <h4>
+        <mat-icon>workspace_premium</mat-icon>
+        Licence
+      </h4>
+      <p>{{ doctor.licenseNumber }}</p>
+    </div>
+
+    <div>
+      <h4>
+        <mat-icon>schedule</mat-icon>
+        Expérience
+      </h4>
+      <p>{{ doctor.yearsExperience }} ans</p>
+    </div>
+
+    <div *ngIf="doctor.consultationFee">
+      <h4>
+        <mat-icon>payments</mat-icon>
+        Tarif consultation
+      </h4>
+      <p>{{ doctor.consultationFee | number:'1.0-0' }} €</p>
+    </div>
+
+    <div *ngIf="doctor.user?.phone">
+      <h4>
+        <mat-icon>call</mat-icon>
+        Contact
+      </h4>
+      <p>{{ doctor.user?.phone }}</p>
+    </div>
+  </section>
+
+  <mat-divider *ngIf="hasAvailabilityWindow"></mat-divider>
+
+  <section class="availability" *ngIf="hasAvailabilityWindow">
+    <h3>
+      <mat-icon>calendar_month</mat-icon>
+      Plages de disponibilité
+    </h3>
+    <p>
+      Du lundi au vendredi :
+      <strong>{{ doctor.availableFrom }}</strong>
+      —
+      <strong>{{ doctor.availableTo }}</strong>
+    </p>
+  </section>
+
+  <mat-divider *ngIf="doctor.user?.email"></mat-divider>
+
+  <section class="contact" *ngIf="doctor.user?.email">
+    <h3>
+      <mat-icon>mail</mat-icon>
+      Email professionnel
+    </h3>
+    <p>{{ doctor.user?.email }}</p>
+  </section>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Fermer</button>
+  <button mat-raised-button color="primary" [mat-dialog-close]="'book'">
+    <mat-icon>event_available</mat-icon>
+    Prendre rendez-vous
+  </button>
+</mat-dialog-actions>

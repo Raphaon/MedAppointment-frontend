@@ -41,4 +41,23 @@ export class AppointmentService {
     const params = status ? { status } : {};
     return this.http.get<{ appointments: Appointment[]; count: number }>(`${this.apiUrl}/all`, { params });
   }
+
+  getDoctorAppointments(
+    doctorId: string,
+    start?: string,
+    end?: string
+  ): Observable<{ appointments: Appointment[]; count?: number }> {
+    const params: Record<string, string> = {};
+    if (start) {
+      params['start'] = start;
+    }
+    if (end) {
+      params['end'] = end;
+    }
+
+    return this.http.get<{ appointments: Appointment[]; count?: number }>(
+      `${this.apiUrl}/doctor/${doctorId}`,
+      { params }
+    );
+  }
 }
