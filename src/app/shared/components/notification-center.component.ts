@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,21 +6,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { NotificationService, Notification } from '@app/core/services/notification.service';
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
-import { take } from 'rxjs';
-=======
-import { Observable } from 'rxjs';
->>>>>>> remotes/origin/codex/refactor-dashboard-and-appointment-components
-=======
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
-import { take } from 'rxjs';
 import { MatTooltipModule } from '@angular/material/tooltip';
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+import { Observable } from 'rxjs';
+
+import { NotificationService, Notification } from '@app/core/services/notification.service';
+import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-notification-center',
@@ -34,53 +26,44 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatMenuModule,
     MatDividerModule,
     MatDialogModule,
-<<<<<<< HEAD
+    MatTooltipModule,
     ConfirmDialogComponent
-=======
-    ConfirmDialogComponent,
-    MatTooltipModule
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
   ],
   template: `
     <button mat-icon-button [matMenuTriggerFor]="notificationMenu"
             [matBadge]="(unreadCount$ | async) ?? 0"
-            [matBadgeHidden]="(unreadCount$ | async) === 0"
+            [matBadgeHidden]="((unreadCount$ | async) ?? 0) === 0"
             matBadgeColor="warn">
       <mat-icon>notifications</mat-icon>
     </button>
 
     <mat-menu #notificationMenu="matMenu" class="notification-menu">
       <div class="notification-header" (click)="$event.stopPropagation()">
-<<<<<<< HEAD
-        <h3>Notifications</h3>
-        <ng-container *ngIf="unreadCount$ | async as unreadCount">
-=======
         <div class="title-group">
           <h3>Notifications</h3>
-          <span class="realtime-indicator" [class.connected]="realtimeConnected">
+          <span class="realtime-indicator" [class.connected]="(realtimeConnected$ | async) ?? false">
             <span class="dot"></span>
-            Temps réel {{ realtimeConnected ? 'actif' : 'en veille' }}
+            Temps réel {{ ((realtimeConnected$ | async) ?? false) ? 'actif' : 'en veille' }}
           </span>
         </div>
         <div class="header-actions">
-          <button mat-icon-button (click)="sync()" [disabled]="isSyncing" matTooltip="Synchroniser">
-            <mat-icon [class.spin]="isSyncing">refresh</mat-icon>
+          <button mat-icon-button (click)="sync()"
+                  [disabled]="(isSyncing$ | async) ?? false"
+                  matTooltip="Synchroniser">
+            <mat-icon [class.spin]="(isSyncing$ | async) ?? false">refresh</mat-icon>
           </button>
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
-          <button mat-button (click)="markAllAsRead()" *ngIf="unreadCount > 0">
+          <button mat-button (click)="markAllAsRead()"
+                  *ngIf="((unreadCount$ | async) ?? 0) > 0">
             <mat-icon>done_all</mat-icon>
             Tout marquer lu
           </button>
-<<<<<<< HEAD
-        </ng-container>
-=======
         </div>
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
       </div>
 
       <mat-divider></mat-divider>
 
-      <div class="notifications-list" *ngIf="notifications$ | async as notifications; else noNotifications">
+      <div class="notifications-list"
+           *ngIf="notifications$ | async as notifications; else noNotifications">
         <div *ngFor="let notification of notifications"
              class="notification-item"
              [class.unread]="!notification.read"
@@ -89,7 +72,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
              [class.warning]="notification.type === 'warning'"
              [class.error]="notification.type === 'error'"
              (click)="handleNotificationClick(notification)">
-          
+
           <div class="notification-icon">
             <mat-icon>{{ getIcon(notification.type) }}</mat-icon>
           </div>
@@ -100,7 +83,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
             <div class="notification-time">{{ getTimeAgo(notification.timestamp) }}</div>
           </div>
 
-          <button mat-icon-button 
+          <button mat-icon-button
                   (click)="deleteNotification($event, notification.id)"
                   class="delete-btn">
             <mat-icon>close</mat-icon>
@@ -115,9 +98,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         </div>
       </ng-template>
 
-      <mat-divider *ngIf="(notifications$ | async)?.length"></mat-divider>
+      <mat-divider *ngIf="((notifications$ | async)?.length ?? 0) > 0"></mat-divider>
 
-      <div class="notification-footer" *ngIf="(notifications$ | async)?.length" (click)="$event.stopPropagation()">
+      <div class="notification-footer"
+           *ngIf="((notifications$ | async)?.length ?? 0) > 0"
+           (click)="$event.stopPropagation()">
         <button mat-button color="warn" (click)="clearAll()">
           <mat-icon>delete_sweep</mat-icon>
           Tout supprimer
@@ -309,48 +294,22 @@ import { MatTooltipModule } from '@angular/material/tooltip';
       display: flex;
       justify-content: center;
     }
-  `]
+  `],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-<<<<<<< HEAD
 export class NotificationCenterComponent {
-  notifications$: Observable<Notification[]> = this.notificationService.notifications$;
-  unreadCount$: Observable<number> = this.notificationService.unreadCount$;
-=======
-export class NotificationCenterComponent implements OnInit {
-  notifications: Notification[] = [];
-  unreadCount = 0;
-  isSyncing = false;
-  realtimeConnected = false;
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
+  readonly notifications$: Observable<Notification[]> = this.notificationService.notifications$;
+  readonly unreadCount$: Observable<number> = this.notificationService.unreadCount$;
+  readonly isSyncing$: Observable<boolean> = this.notificationService.isSyncing$;
+  readonly realtimeConnected$: Observable<boolean> = this.notificationService.realtimeConnected$;
 
   constructor(
-    private notificationService: NotificationService,
-    private dialog: MatDialog
+    private readonly notificationService: NotificationService,
+    private readonly dialog: MatDialog
   ) {}
-<<<<<<< HEAD
-=======
-
-  ngOnInit(): void {
-    this.notificationService.notifications$.subscribe((notifications: Notification[]) => {
-      this.notifications = notifications;
-    });
-
-    this.notificationService.unreadCount$.subscribe((count: number) => {
-      this.unreadCount = count;
-    });
-
-    this.notificationService.isSyncing$.subscribe((syncing: boolean) => {
-      this.isSyncing = syncing;
-    });
-
-    this.notificationService.realtimeConnected$.subscribe((connected: boolean) => {
-      this.realtimeConnected = connected;
-    });
-  }
->>>>>>> remotes/origin/codex/analyser-le-code-et-proposer-des-ameliorations-t6thm6
 
   getIcon(type: string): string {
-    const icons: any = {
+    const icons: Record<string, string> = {
       info: 'info',
       success: 'check_circle',
       warning: 'warning',
@@ -366,16 +325,25 @@ export class NotificationCenterComponent implements OnInit {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (days > 0) return `Il y a ${days}j`;
-    if (hours > 0) return `Il y a ${hours}h`;
-    if (minutes > 0) return `Il y a ${minutes}m`;
+    if (days > 0) {
+      return `Il y a ${days}j`;
+    }
+    if (hours > 0) {
+      return `Il y a ${hours}h`;
+    }
+    if (minutes > 0) {
+      return `Il y a ${minutes}m`;
+    }
     return 'À l\'instant';
   }
 
   handleNotificationClick(notification: Notification): void {
-    this.notificationService.markAsRead(notification.id);
+    if (!notification.read) {
+      this.notificationService.markAsRead(notification.id);
+    }
+
     if (notification.link) {
-      // Navigation sera gérée par le router si nécessaire
+      // Navigation is handled by routerLink in the template if needed.
     }
   }
 
@@ -393,19 +361,23 @@ export class NotificationCenterComponent implements OnInit {
   }
 
   clearAll(): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Tout supprimer ?',
-        message: 'Voulez-vous vraiment supprimer toutes les notifications ? Cette action est irréversible.',
-        confirmLabel: 'Tout supprimer',
-        icon: 'delete_sweep'
-      },
-      autoFocus: false,
-      restoreFocus: false
-    }).afterClosed().pipe(take(1)).subscribe((confirmed) => {
-      if (confirmed) {
-        this.notificationService.clearAll();
-      }
-    });
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: {
+          title: 'Tout supprimer ?',
+          message: 'Voulez-vous vraiment supprimer toutes les notifications ? Cette action est irréversible.',
+          confirmLabel: 'Tout supprimer',
+          icon: 'delete_sweep'
+        },
+        autoFocus: false,
+        restoreFocus: false
+      })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.notificationService.clearAll();
+        }
+      });
   }
 }
