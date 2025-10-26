@@ -81,6 +81,30 @@ npm run watch      # Mode watch
 npm test           # Lancer les tests
 ```
 
+## 🧪 Tests en local
+
+1. **Installer les dépendances**
+   ```bash
+   npm install
+   ```
+
+2. **(Optionnel) Vérifier que le backend est lancé** pour les scénarios end-to-end manuels : `npm start` dans le backend.
+
+3. **Lancer la suite de tests unitaires** en mode headless pour éviter l'ouverture du navigateur :
+   ```bash
+   npm run test -- --watch=false --browsers=ChromeHeadless
+   ```
+   > Assurez-vous d'avoir Google Chrome ou Chromium installé localement. Sur Linux, vous pouvez exporter la variable `CHROME_BIN` vers le binaire de Chrome/Chromium si nécessaire.
+
+4. **Valider le build de production** avant un commit important :
+   ```bash
+   npm run build
+   ```
+
+5. **Analyser les résultats**
+   - Les rapports Karma s'affichent dans le terminal.
+   - Pour réexécuter automatiquement les tests pendant le développement, utilisez `npm test` (mode watch par défaut).
+
 ## 🌐 Configuration de l'API
 
 L'URL de l'API backend est configurée dans les services :

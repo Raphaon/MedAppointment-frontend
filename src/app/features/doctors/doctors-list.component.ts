@@ -31,10 +31,16 @@ import { DoctorProfile, MedicalSpecialty } from '@app/core/models';
     <div class="doctors-container">
       <div class="header">
         <h1>👨‍⚕️ Nos Médecins</h1>
-        <button mat-raised-button color="primary" routerLink="/dashboard">
-          <mat-icon>arrow_back</mat-icon>
-          Retour
-        </button>
+        <div class="header-actions">
+          <button mat-stroked-button color="primary" routerLink="/doctors/search">
+            <mat-icon>tune</mat-icon>
+            Recherche avancée
+          </button>
+          <button mat-raised-button color="primary" routerLink="/dashboard">
+            <mat-icon>arrow_back</mat-icon>
+            Retour
+          </button>
+        </div>
       </div>
 
       <div class="filters">
@@ -125,6 +131,11 @@ import { DoctorProfile, MedicalSpecialty } from '@app/core/models';
       justify-content: space-between;
       align-items: center;
       margin-bottom: 32px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
     }
 
     .header h1 {
