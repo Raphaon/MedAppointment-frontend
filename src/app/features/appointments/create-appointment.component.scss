@@ -1,0 +1,67 @@
+.create-appointment-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
+.appointment-card {
+  max-width: 600px;
+  width: 100%;
+}
+
+mat-card-title h1 {
+  text-align: center;
+  color: #667eea;
+  margin: 0;
+}
+
+mat-form-field {
+  margin-bottom: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.doctor-info {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background-color: #e3f2fd;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.doctor-info mat-icon {
+  color: #1976d2;
+}
+
+.doctor-info p {
+  margin: 4px 0;
+  color: #555;
+}
+
+.time-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.actions button {
+  flex: 1;
+}
+
+button mat-spinner {
+  display: inline-block;
+  margin: 0 auto;
+}

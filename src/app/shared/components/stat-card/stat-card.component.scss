@@ -1,0 +1,41 @@
+.stat-card {
+  border-left: 6px solid transparent;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: default;
+}
+
+.stat-card.clickable {
+  cursor: pointer;
+}
+
+.stat-card.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-header mat-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.stat-title {
+  margin-top: 12px;
+  margin-bottom: 0;
+  font-size: 16px;
+  color: #4a5568;
+}

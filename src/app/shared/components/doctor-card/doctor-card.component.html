@@ -1,0 +1,57 @@
+<mat-card class="doctor-card">
+  <mat-card-header>
+    <div mat-card-avatar class="doctor-avatar">
+      <mat-icon>person</mat-icon>
+    </div>
+    <mat-card-title>
+      Dr. {{ doctor.user?.firstName }} {{ doctor.user?.lastName }}
+    </mat-card-title>
+    <mat-card-subtitle>
+      <mat-chip color="primary" selected>
+        {{ specialtyLabel }}
+      </mat-chip>
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div class="doctor-info">
+      <div class="info-row" [class.highlight]="highlightKeyInfo" *ngIf="doctor.yearsExperience">
+        <mat-icon>work</mat-icon>
+        <span>{{ doctor.yearsExperience }} ans d'expérience</span>
+      </div>
+
+      <div class="info-row" [class.highlight]="highlightKeyInfo" *ngIf="doctor.consultationFee">
+        <mat-icon>euro</mat-icon>
+        <span>{{ doctor.consultationFee }}€ / consultation</span>
+      </div>
+
+      <div class="info-row" *ngIf="doctor.availableFrom && doctor.availableTo">
+        <mat-icon>schedule</mat-icon>
+        <span>Disponible de {{ doctor.availableFrom }} à {{ doctor.availableTo }}</span>
+      </div>
+
+      <div class="info-row" *ngIf="doctor.user?.phone">
+        <mat-icon>phone</mat-icon>
+        <span>{{ doctor.user.phone }}</span>
+      </div>
+
+      <div class="info-row" *ngIf="doctor.user?.email">
+        <mat-icon>email</mat-icon>
+        <span>{{ doctor.user.email }}</span>
+      </div>
+
+      <p class="bio" *ngIf="doctor.bio">{{ doctor.bio }}</p>
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions *ngIf="showAction || showDetails">
+    <button *ngIf="showAction" mat-raised-button [color]="actionColor" (click)="onAction()">
+      <mat-icon>event</mat-icon>
+      {{ actionLabel }}
+    </button>
+    <button *ngIf="showDetails" mat-button [color]="detailsColor" (click)="onDetails()">
+      <mat-icon>{{ detailsIcon }}</mat-icon>
+      {{ detailsLabel }}
+    </button>
+  </mat-card-actions>
+</mat-card>

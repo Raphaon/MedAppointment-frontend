@@ -1,0 +1,36 @@
+<div class="doctors-container">
+  <div class="header">
+    <h1>👨‍⚕️ Nos Médecins</h1>
+    <button mat-raised-button color="primary" routerLink="/dashboard">
+      <mat-icon>arrow_back</mat-icon>
+      Retour
+    </button>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Filtrer par spécialité</mat-label>
+      <mat-select [(ngModel)]="selectedSpecialty" (selectionChange)="onFilterChange()">
+        <mat-option [value]="null">Toutes les spécialités</mat-option>
+        <mat-option *ngFor="let specialty of specialties" [value]="specialty.value">
+          {{ specialty.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="doctors-grid" *ngIf="doctors.length > 0">
+    <app-doctor-card
+      *ngFor="let doctor of doctors"
+      [doctor]="doctor"
+      (action)="bookAppointment($event)"
+      [actionLabel]="'Prendre rendez-vous'"
+      actionColor="accent">
+    </app-doctor-card>
+  </div>
+
+  <div class="no-data" *ngIf="doctors.length === 0">
+    <mat-icon>people_outline</mat-icon>
+    <p>Aucun médecin trouvé</p>
+  </div>
+</div>
