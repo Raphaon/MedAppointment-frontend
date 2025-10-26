@@ -1,0 +1,140 @@
+<div class="profile-container">
+  <div class="header">
+    <h1>👤 Mon Profil</h1>
+    <button mat-raised-button color="primary" routerLink="/dashboard">
+      <mat-icon>arrow_back</mat-icon>
+      Retour
+    </button>
+  </div>
+
+  <mat-card class="profile-card" *ngIf="currentUser">
+    <mat-card-header>
+      <div mat-card-avatar class="profile-avatar">
+        <mat-icon>{{ getAvatarIcon() }}</mat-icon>
+      </div>
+      <mat-card-title>
+        {{ currentUser.firstName }} {{ currentUser.lastName }}
+      </mat-card-title>
+      <mat-card-subtitle>
+        <mat-chip [color]="getRoleColor()" selected>
+          {{ getRoleLabel() }}
+        </mat-chip>
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-tab-group>
+        <mat-tab label="Informations générales">
+          <div class="tab-content">
+            <div class="info-section">
+              <h3>📧 Contact</h3>
+              <div class="info-row">
+                <mat-icon>email</mat-icon>
+                <span>{{ currentUser.email }}</span>
+              </div>
+              <div class="info-row" *ngIf="currentUser.phone">
+                <mat-icon>phone</mat-icon>
+                <span>{{ currentUser.phone }}</span>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>🔐 Compte</h3>
+              <div class="info-row">
+                <mat-icon>badge</mat-icon>
+                <span>{{ currentUser.id }}</span>
+              </div>
+              <div class="info-row">
+                <mat-icon>calendar_today</mat-icon>
+                <span>Membre depuis {{ currentUser.createdAt | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="info-row">
+                <mat-icon>{{ currentUser.isActive ? 'check_circle' : 'cancel' }}</mat-icon>
+                <span>Compte {{ currentUser.isActive ? 'actif' : 'inactif' }}</span>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Profil Médecin" *ngIf="currentUser.role === UserRole.DOCTOR && currentUser.doctorProfile">
+          <div class="tab-content">
+            <div class="info-section">
+              <h3>👨‍⚕️ Informations professionnelles</h3>
+              <div class="info-row">
+                <mat-icon>assignment_ind</mat-icon>
+                <span>N° Licence: {{ currentUser.doctorProfile.licenseNumber }}</span>
+              </div>
+              <div class="info-row">
+                <mat-icon>medical_services</mat-icon>
+                <span>{{ getSpecialtyLabel(currentUser.doctorProfile.specialty) }}</span>
+              </div>
+              <div class="info-row">
+                <mat-icon>work</mat-icon>
+                <span>{{ currentUser.doctorProfile.yearsExperience }} ans d'expérience</span>
+              </div>
+              <div class="info-row" *ngIf="currentUser.doctorProfile.consultationFee">
+                <mat-icon>euro</mat-icon>
+                <span>{{ currentUser.doctorProfile.consultationFee }}€ / consultation</span>
+              </div>
+              <div class="info-row" *ngIf="currentUser.doctorProfile.availableFrom">
+                <mat-icon>schedule</mat-icon>
+                <span>Disponible de {{ currentUser.doctorProfile.availableFrom }}
+                      à {{ currentUser.doctorProfile.availableTo }}</span>
+              </div>
+            </div>
+
+            <div class="info-section" *ngIf="currentUser.doctorProfile.bio">
+              <h3>📝 Biographie</h3>
+              <p class="bio">{{ currentUser.doctorProfile.bio }}</p>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Profil Patient" *ngIf="currentUser.role === UserRole.PATIENT && currentUser.patientProfile">
+          <div class="tab-content">
+            <div class="info-section">
+              <h3>🏥 Informations médicales</h3>
+              <div class="info-row" *ngIf="currentUser.patientProfile.dateOfBirth">
+                <mat-icon>cake</mat-icon>
+                <span>{{ currentUser.patientProfile.dateOfBirth | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="info-row" *ngIf="currentUser.patientProfile.bloodGroup">
+                <mat-icon>water_drop</mat-icon>
+                <span>Groupe sanguin: {{ currentUser.patientProfile.bloodGroup }}</span>
+              </div>
+              <div class="info-row" *ngIf="currentUser.patientProfile.allergies">
+                <mat-icon>warning</mat-icon>
+                <span>Allergies: {{ currentUser.patientProfile.allergies }}</span>
+              </div>
+              <div class="info-row" *ngIf="currentUser.patientProfile.emergencyContact">
+                <mat-icon>contact_phone</mat-icon>
+                <span>Contact urgence: {{ currentUser.patientProfile.emergencyContact }}</span>
+              </div>
+            </div>
+
+            <div class="info-section" *ngIf="currentUser.patientProfile.medicalHistory">
+              <h3>📋 Historique médical</h3>
+              <p class="bio">{{ currentUser.patientProfile.medicalHistory }}</p>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-raised-button color="accent"
+              routerLink="/profile/edit-doctor"
+              *ngIf="currentUser?.role === UserRole.DOCTOR">
+        <mat-icon>edit</mat-icon>
+        {{ currentUser?.doctorProfile ? 'Modifier' : 'Créer' }} mon profil médecin
+      </button>
+
+      <button mat-raised-button color="accent"
+              routerLink="/profile/edit-patient"
+              *ngIf="currentUser?.role === UserRole.PATIENT">
+        <mat-icon>edit</mat-icon>
+        {{ currentUser?.patientProfile ? 'Modifier' : 'Créer' }} mon profil patient
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

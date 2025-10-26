@@ -1,0 +1,107 @@
+<div class="search-container">
+  <div class="header">
+    <h1>🔍 Recherche avancée de médecins</h1>
+    <button mat-raised-button color="primary" routerLink="/dashboard">
+      <mat-icon>arrow_back</mat-icon>
+      Retour
+    </button>
+  </div>
+
+  <mat-card class="search-filters">
+    <form [formGroup]="searchForm">
+      <div class="filters-grid">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nom du médecin</mat-label>
+          <input matInput formControlName="name" placeholder="Ex: Dr. Dupont">
+          <mat-icon matPrefix>person_search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Spécialité</mat-label>
+          <mat-select formControlName="specialty" multiple>
+            <mat-option *ngFor="let specialty of specialties" [value]="specialty.value">
+              {{ specialty.label }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>medical_services</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Expérience minimale (années)</mat-label>
+          <input matInput type="number" formControlName="minExperience" min="0">
+          <mat-icon matPrefix>work</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tarif maximum (€)</mat-label>
+          <input matInput type="number" formControlName="maxFee" min="0">
+          <mat-icon matPrefix>euro</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="filter-actions">
+        <button mat-button type="button" (click)="resetFilters()">
+          <mat-icon>clear</mat-icon>
+          Réinitialiser
+        </button>
+        <button mat-raised-button color="primary" type="button" (click)="search()">
+          <mat-icon>search</mat-icon>
+          Rechercher
+        </button>
+      </div>
+    </form>
+  </mat-card>
+
+  <div class="results-section">
+    <div class="results-header">
+      <h2>
+        {{ filteredDoctors.length }} médecin(s) trouvé(s)
+        <span *ngIf="hasActiveFilters()" class="active-filters-badge">
+          {{ getActiveFiltersCount() }} filtre(s) actif(s)
+        </span>
+      </h2>
+      <mat-form-field appearance="outline" class="sort-field">
+        <mat-label>Trier par</mat-label>
+        <mat-select [(value)]="sortBy" (selectionChange)="sortResults()">
+          <mat-option value="name">Nom</mat-option>
+          <mat-option value="experience">Expérience</mat-option>
+          <mat-option value="fee">Tarif</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="loading" *ngIf="loading">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Recherche en cours...</p>
+    </div>
+
+    <div class="doctors-grid" *ngIf="!loading && filteredDoctors.length > 0">
+      <app-doctor-card
+        *ngFor="let doctor of filteredDoctors"
+        [doctor]="doctor"
+        [highlightKeyInfo]="true"
+        (action)="bookAppointment($event)"
+        [actionLabel]="'Prendre rendez-vous'"
+        actionColor="accent"
+        [showDetails]="true"
+        [detailsLabel]="'Détails'"
+        (details)="viewDetails($event)">
+      </app-doctor-card>
+    </div>
+
+    <div class="no-results" *ngIf="!loading && filteredDoctors.length === 0 && allDoctors.length > 0">
+      <mat-icon>search_off</mat-icon>
+      <h3>Aucun médecin ne correspond à vos critères</h3>
+      <p>Essayez d'élargir vos critères de recherche</p>
+      <button mat-raised-button color="primary" (click)="resetFilters()">
+        Réinitialiser les filtres
+      </button>
+    </div>
+
+    <div class="no-data" *ngIf="!loading && allDoctors.length === 0">
+      <mat-icon>people_outline</mat-icon>
+      <h3>Aucun médecin inscrit</h3>
+      <p>Il n'y a pas encore de médecins sur la plateforme</p>
+    </div>
+  </div>
+</div>
