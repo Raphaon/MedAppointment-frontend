@@ -14,8 +14,8 @@ export class AuthGuard implements CanActivate {
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     if (this.authService.isAuthenticated()) {
       // Vérifier les rôles si spécifiés
-      const requiredRoles = route.data['roles'] as string[];
-      if (requiredRoles) {
+      const requiredRoles = this.collectRoles(route);
+      if (requiredRoles.length > 0) {
         const user = this.authService.getCurrentUser();
         if (user && requiredRoles.includes(user.role)) {
           return true;
@@ -28,5 +28,16 @@ export class AuthGuard implements CanActivate {
 
     this.router.navigate(['/auth/login'], { queryParams: { returnUrl: state.url } });
     return false;
+  }
+
+  private collectRoles(route: ActivatedRouteSnapshot | null): string[] {
+    if (!route) {
+      return [];
+    }
+
+    const currentRoles = Array.isArray(route.data?.['roles']) ? route.data['roles'] as string[] : [];
+    const parentRoles = this.collectRoles(route.parent);
+
+    return Array.from(new Set([...parentRoles, ...currentRoles]));
   }
 }

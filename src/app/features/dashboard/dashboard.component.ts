@@ -12,6 +12,9 @@ import { AppointmentService } from '@app/core/services/appointment.service';
 import { NotificationCenterComponent } from '@app/shared/components/notification-center.component';
 import { User, UserRole, Appointment, AppointmentStatus } from '@app/core/models';
 import { StatCardComponent } from '@app/shared/components/stat-card/stat-card.component';
+import { UserService } from '@app/core/services/user.service';
+import { DoctorService } from '@app/core/services/doctor.service';
+import { forkJoin } from 'rxjs';
 
 interface StatCard {
   title: string;
@@ -45,128 +48,167 @@ export class DashboardComponent implements OnInit {
   UserRole = UserRole;
   stats: StatCard[] = [];
   upcomingAppointments: Appointment[] = [];
+  private adminStatsLoaded = false;
 
   constructor(
     private authService: AuthService,
     private appointmentService: AppointmentService,
-    private router: Router
+    private router: Router,
+    private userService: UserService,
+    private doctorService: DoctorService
   ) {}
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe((user: User | null) => {
       this.currentUser = user;
       if (user) {
-        this.loadStatistics();
-        this.loadUpcomingAppointments();
+        this.loadDashboardData();
       }
     });
   }
 
-  loadStatistics(): void {
+  private loadDashboardData(): void {
     this.appointmentService.getMyAppointments().subscribe({
       next: (response: any) => {
         const appointments = response.appointments || [];
-        
-        if (this.currentUser?.role === UserRole.PATIENT) {
-          this.stats = [
-            {
-              title: 'Rendez-vous à venir',
-              value: appointments.filter((a: Appointment) => 
-                a.status === AppointmentStatus.CONFIRMED || a.status === AppointmentStatus.PENDING
-              ).length,
-              icon: 'event',
-              color: '#4caf50',
-              route: '/appointments'
-            },
-            {
-              title: 'Consultations passées',
-              value: appointments.filter((a: Appointment) => 
-                a.status === AppointmentStatus.COMPLETED
-              ).length,
-              icon: 'history',
-              color: '#2196f3'
-            },
-            {
-              title: 'Total rendez-vous',
-              value: appointments.length,
-              icon: 'calendar_today',
-              color: '#ff9800'
-            }
-          ];
-        } else if (this.currentUser?.role === UserRole.DOCTOR) {
-          this.stats = [
-            {
-              title: 'Patients aujourd\'hui',
-              value: appointments.filter((a: Appointment) => 
-                this.isToday(new Date(a.appointmentDate))
-              ).length,
-              icon: 'people',
-              color: '#4caf50',
-              route: '/calendar'
-            },
-            {
-              title: 'En attente',
-              value: appointments.filter((a: Appointment) => 
-                a.status === AppointmentStatus.PENDING
-              ).length,
-              icon: 'schedule',
-              color: '#ff9800',
-              route: '/appointments'
-            },
-            {
-              title: 'Total consultations',
-              value: appointments.length,
-              icon: 'local_hospital',
-              color: '#2196f3'
-            }
-          ];
-        } else if (this.currentUser?.role === UserRole.ADMIN) {
-          this.stats = [
-            {
-              title: 'Total rendez-vous',
-              value: appointments.length,
-              icon: 'event',
-              color: '#4caf50',
-              route: '/appointments'
-            },
-            {
-              title: 'Utilisateurs',
-              value: 0, // À charger depuis UserService
-              icon: 'people',
-              color: '#2196f3',
-              route: '/users'
-            },
-            {
-              title: 'Médecins actifs',
-              value: 0, // À charger depuis DoctorService
-              icon: 'local_hospital',
-              color: '#ff9800',
-              route: '/doctors'
-            }
-          ];
+        this.upcomingAppointments = this.extractUpcomingAppointments(appointments);
+        this.buildStats(appointments);
+      },
+      error: (error: any) => {
+        console.error('Erreur chargement des données du tableau de bord:', error);
+      }
+    });
+  }
+
+  private extractUpcomingAppointments(appointments: Appointment[]): Appointment[] {
+    const now = new Date();
+
+    return appointments
+      .filter((a: Appointment) => new Date(a.appointmentDate) > now)
+      .sort((a: Appointment, b: Appointment) =>
+        new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime()
+      )
+      .slice(0, 3);
+  }
+
+  private buildStats(appointments: Appointment[]): void {
+    if (!this.currentUser) {
+      this.stats = [];
+      return;
+    }
+
+    if (this.currentUser.role === UserRole.PATIENT) {
+      this.stats = [
+        {
+          title: 'Rendez-vous à venir',
+          value: appointments.filter((a: Appointment) =>
+            a.status === AppointmentStatus.CONFIRMED || a.status === AppointmentStatus.PENDING
+          ).length,
+          icon: 'event',
+          color: '#4caf50',
+          route: '/appointments'
+        },
+        {
+          title: 'Consultations passées',
+          value: appointments.filter((a: Appointment) =>
+            a.status === AppointmentStatus.COMPLETED
+          ).length,
+          icon: 'history',
+          color: '#2196f3'
+        },
+        {
+          title: 'Total rendez-vous',
+          value: appointments.length,
+          icon: 'calendar_today',
+          color: '#ff9800'
         }
-      },
-      error: (error: any) => {
-        console.error('Erreur chargement stats:', error);
-      }
-    });
+      ];
+      return;
+    }
+
+    if (this.currentUser.role === UserRole.DOCTOR) {
+      this.stats = [
+        {
+          title: 'Patients aujourd\'hui',
+          value: appointments.filter((a: Appointment) =>
+            this.isToday(new Date(a.appointmentDate))
+          ).length,
+          icon: 'people',
+          color: '#4caf50',
+          route: '/calendar'
+        },
+        {
+          title: 'En attente',
+          value: appointments.filter((a: Appointment) =>
+            a.status === AppointmentStatus.PENDING
+          ).length,
+          icon: 'schedule',
+          color: '#ff9800',
+          route: '/appointments'
+        },
+        {
+          title: 'Total consultations',
+          value: appointments.length,
+          icon: 'local_hospital',
+          color: '#2196f3'
+        }
+      ];
+      return;
+    }
+
+    if (this.currentUser.role === UserRole.ADMIN) {
+      this.stats = [
+        {
+          title: 'Total rendez-vous',
+          value: appointments.length,
+          icon: 'event',
+          color: '#4caf50',
+          route: '/appointments'
+        },
+        {
+          title: 'Utilisateurs',
+          value: 0,
+          icon: 'people',
+          color: '#2196f3',
+          route: '/users'
+        },
+        {
+          title: 'Médecins actifs',
+          value: 0,
+          icon: 'local_hospital',
+          color: '#ff9800',
+          route: '/doctors'
+        }
+      ];
+      this.loadAdminMetrics();
+    }
   }
 
-  loadUpcomingAppointments(): void {
-    this.appointmentService.getMyAppointments().subscribe({
-      next: (response: any) => {
-        const appointments = response.appointments || [];
-        const now = new Date();
-        
-        this.upcomingAppointments = appointments
-          .filter((a: Appointment) => new Date(a.appointmentDate) > now)
-          .sort((a: Appointment, b: Appointment) => 
-            new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime()
-          )
-          .slice(0, 3); // Seulement les 3 prochains
+  private loadAdminMetrics(): void {
+    if (this.adminStatsLoaded) {
+      return;
+    }
+
+    this.adminStatsLoaded = true;
+
+    forkJoin({
+      users: this.userService.getAllUsers(),
+      doctors: this.doctorService.getAllDoctors()
+    }).subscribe({
+      next: ({ users, doctors }) => {
+        this.stats = this.stats.map((stat) => {
+          if (stat.title === 'Utilisateurs') {
+            return { ...stat, value: users.count ?? users.users.length };
+          }
+          if (stat.title === 'Médecins actifs') {
+            return { ...stat, value: doctors.count ?? doctors.doctors.length };
+          }
+          return stat;
+        });
       },
-      error: (error: any) => {
-        console.error('Erreur chargement RDV:', error);
+      error: (error) => {
+        console.error('Erreur lors du chargement des indicateurs administrateur:', error);
+        this.adminStatsLoaded = false;
       }
     });
   }
