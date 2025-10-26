@@ -68,6 +68,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
           <div class="register-link">
             <p>Pas encore de compte ? <a routerLink="/auth/register">S'inscrire</a></p>
+            <a class="forgot-password" routerLink="/auth/forgot-password">Mot de passe oublié ?</a>
           </div>
         </mat-card-content>
       </mat-card>
@@ -124,6 +125,11 @@ import { AuthService } from '../../../core/services/auth.service';
       color: #667eea;
       text-decoration: none;
       font-weight: 500;
+    }
+
+    .register-link .forgot-password {
+      display: block;
+      margin-top: 8px;
     }
 
     .register-link a:hover {
