@@ -1,0 +1,208 @@
+<ng-template #loadingState>
+  <div class="loading-state">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Chargement de la consultation...</p>
+  </div>
+</ng-template>
+
+<ng-container *ngIf="!loading; else loadingState">
+  <div class="workspace-container" *ngIf="appointment; else missingAppointment">
+    <div class="page-header">
+      <button mat-button type="button" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Retour aux rendez-vous
+      </button>
+      <div class="header-info">
+        <h1>Consultation avec {{ appointment?.patient?.firstName }} {{ appointment?.patient?.lastName }}</h1>
+        <div class="meta">
+          <span>
+            <mat-icon>event</mat-icon>
+            {{ appointment?.appointmentDate | date:'EEEE d MMMM yyyy à HH:mm':'':'fr' }}
+          </span>
+          <span>
+            <mat-icon>schedule</mat-icon>
+            {{ appointment?.duration || 30 }} min
+          </span>
+          <mat-chip class="status" color="primary" selected>
+            {{ appointment?.reason }}
+          </mat-chip>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <mat-card class="patient-card">
+        <mat-card-header>
+          <mat-card-title>Informations patient</mat-card-title>
+          <mat-card-subtitle>Détails essentiels pour la consultation</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-row">
+            <mat-icon>badge</mat-icon>
+            <div>
+              <h3>{{ appointment?.patient?.firstName }} {{ appointment?.patient?.lastName }}</h3>
+              <p>ID patient : {{ appointment?.patientId }}</p>
+            </div>
+          </div>
+          <div class="info-row" *ngIf="appointment?.patient?.email">
+            <mat-icon>mail</mat-icon>
+            <div>
+              <span>{{ appointment?.patient?.email }}</span>
+            </div>
+          </div>
+          <div class="info-row" *ngIf="appointment?.patient?.phone">
+            <mat-icon>call</mat-icon>
+            <div>
+              <span>{{ appointment?.patient?.phone }}</span>
+            </div>
+          </div>
+          <div class="info-row" *ngIf="appointment?.notes">
+            <mat-icon>description</mat-icon>
+            <div>
+              <span>{{ appointment?.notes }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="consultation-card">
+        <mat-card-header>
+          <mat-card-title>Espace consultation</mat-card-title>
+          <mat-card-subtitle *ngIf="!hasConsultation">
+            Démarrez la consultation pour accéder au dossier médical électronique
+          </mat-card-subtitle>
+          <mat-card-subtitle *ngIf="hasConsultation">
+            Consignez vos observations et votre plan de prise en charge
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="start-placeholder" *ngIf="canStartConsultation">
+            <mat-icon>medical_information</mat-icon>
+            <h3>Prêt à commencer la consultation ?</h3>
+            <p>Accédez au dossier médical électronique du patient et saisissez vos observations en temps réel.</p>
+            <button mat-raised-button color="primary" (click)="startConsultation()" [disabled]="startingConsultation">
+              <mat-spinner *ngIf="startingConsultation" diameter="20"></mat-spinner>
+              <span *ngIf="!startingConsultation">Démarrer la consultation</span>
+            </button>
+          </div>
+
+          <div class="consultation-disabled" *ngIf="!canStartConsultation && !hasConsultation">
+            <mat-icon>block</mat-icon>
+            <h3>Consultation indisponible</h3>
+            <p>Le rendez-vous doit être confirmé pour accéder à l'espace de consultation.</p>
+          </div>
+
+          <form *ngIf="hasConsultation" [formGroup]="consultationForm" class="consultation-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Notes de consultation</mat-label>
+              <textarea matInput rows="4" formControlName="notes" placeholder="Observations cliniques, contexte, symptômes..."></textarea>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Diagnostic</mat-label>
+              <textarea matInput rows="3" formControlName="diagnosis" placeholder="Diagnostic principal ou hypothèses"></textarea>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Plan de traitement</mat-label>
+              <textarea matInput rows="3" formControlName="treatmentPlan" placeholder="Traitements, examens complémentaires, conseils"></textarea>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Date de suivi</mat-label>
+              <input matInput [matDatepicker]="followUpPicker" formControlName="followUpDate" placeholder="Planifier un contrôle">
+              <mat-datepicker-toggle matSuffix [for]="followUpPicker"></mat-datepicker-toggle>
+              <mat-datepicker #followUpPicker></mat-datepicker>
+            </mat-form-field>
+          </form>
+        </mat-card-content>
+        <mat-card-actions *ngIf="hasConsultation" align="end">
+          <button mat-stroked-button type="button" color="primary" (click)="saveConsultation()" [disabled]="savingConsultation">
+            <mat-spinner *ngIf="savingConsultation" diameter="18"></mat-spinner>
+            <span *ngIf="!savingConsultation">Enregistrer</span>
+          </button>
+          <button mat-raised-button type="button" color="accent" (click)="completeConsultation()" [disabled]="!canCompleteConsultation">
+            <mat-spinner *ngIf="completingConsultation" diameter="18"></mat-spinner>
+            <span *ngIf="!completingConsultation">Terminer la consultation</span>
+          </button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card class="records-card">
+        <mat-card-header>
+          <mat-card-title>Dossier Médical Électronique</mat-card-title>
+          <mat-card-subtitle>Historique des entrées cliniques</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <form class="record-form" [formGroup]="recordForm" (ngSubmit)="addMedicalRecord()" *ngIf="hasConsultation">
+            <div class="form-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Type d'entrée</mat-label>
+                <mat-select formControlName="type">
+                  <mat-option *ngFor="let option of recordTypeOptions" [value]="option.value">
+                    {{ option.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Titre</mat-label>
+                <input matInput formControlName="title" placeholder="Titre court de l'entrée">
+                <mat-error *ngIf="recordForm.get('title')?.hasError('required')">Titre requis</mat-error>
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Contenu</mat-label>
+              <textarea matInput rows="4" formControlName="content" placeholder="Compte rendu détaillé, prescription, directives..."></textarea>
+              <mat-error *ngIf="recordForm.get('content')?.hasError('required')">Contenu requis</mat-error>
+            </mat-form-field>
+
+            <div class="record-actions">
+              <button mat-stroked-button color="primary" type="submit" [disabled]="recordForm.invalid || addingRecord">
+                <mat-spinner *ngIf="addingRecord" diameter="18"></mat-spinner>
+                <span *ngIf="!addingRecord">Ajouter au dossier</span>
+              </button>
+            </div>
+          </form>
+
+          <div class="records-list" *ngIf="!timelineLoading; else timelineLoadingState">
+            <div class="record-item" *ngFor="let record of medicalRecords; trackBy: trackByRecord">
+              <div class="record-header">
+                <mat-chip color="accent" selected>{{ getRecordTypeLabel(record.type) }}</mat-chip>
+                <span class="record-date">{{ record.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <h3>{{ record.title }}</h3>
+              <p>{{ record.content }}</p>
+              <div class="record-meta">
+                <span>Dr. {{ appointment?.doctor?.lastName || appointment?.doctor?.firstName || 'Inconnu' }}</span>
+                <button mat-icon-button color="warn" matTooltip="Supprimer l'entrée" (click)="removeRecord(record)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+            <p class="empty-records" *ngIf="medicalRecords.length === 0">
+              Aucune entrée dans le dossier médical pour le moment.
+            </p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #timelineLoadingState>
+  <div class="loading-state small">
+    <mat-spinner diameter="32"></mat-spinner>
+    <p>Chargement du dossier médical...</p>
+  </div>
+</ng-template>
+
+<ng-template #missingAppointment>
+  <div class="error-state">
+    <mat-icon color="warn">error</mat-icon>
+    <h2>Impossible d'afficher la consultation</h2>
+    <p>Le rendez-vous demandé est introuvable ou a été supprimé.</p>
+    <button mat-raised-button color="primary" (click)="goBack()">Retour</button>
+  </div>
+</ng-template>
