@@ -119,5 +119,42 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: { roles: [UserRole.ADMIN] }
   },
+  {
+    path: 'consultations',
+    canActivate: [AuthGuard],
+    data: { roles: [UserRole.DOCTOR] },
+    children: [
+      {
+        path: ':appointmentId',
+        loadComponent: () =>
+          import('./features/consultations/consultation-workspace.component').then(
+            (m) => m.ConsultationWorkspaceComponent
+          )
+      }
+    ]
+  },
+  {
+    path: 'mobile',
+    canActivate: [AuthGuard],
+    children: [
+      {
+        path: 'patient',
+        loadComponent: () =>
+          import('./features/mobile/mobile-patient-home.component').then(
+            (m) => m.MobilePatientHomeComponent
+          ),
+        data: { roles: [UserRole.PATIENT] }
+      },
+      {
+        path: 'doctor',
+        loadComponent: () =>
+          import('./features/mobile/mobile-doctor-home.component').then(
+            (m) => m.MobileDoctorHomeComponent
+          ),
+        data: { roles: [UserRole.DOCTOR] }
+      },
+      { path: '', redirectTo: 'patient', pathMatch: 'full' }
+    ]
+  },
   { path: '**', redirectTo: '/dashboard' }
 ];

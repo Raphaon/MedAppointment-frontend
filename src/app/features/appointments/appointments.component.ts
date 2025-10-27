@@ -111,6 +111,18 @@ export class AppointmentsComponent implements OnInit, AfterViewInit {
     });
   }
 
+  get isDoctor(): boolean {
+    return this.currentUser?.role === UserRole.DOCTOR;
+  }
+
+  openConsultation(appointment: Appointment): void {
+    if (!this.isDoctor || !appointment?.id) {
+      return;
+    }
+
+    this.router.navigate(['/consultations', appointment.id]);
+  }
+
   ngOnInit(): void {
     this.authService.currentUser$
       .pipe(takeUntilDestroyed(this.destroyRef))

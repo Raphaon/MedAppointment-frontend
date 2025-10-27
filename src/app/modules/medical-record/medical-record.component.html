@@ -1,0 +1,82 @@
+<div class="medical-record" *ngIf="!loadingRecord; else recordLoading">
+  <ng-container *ngIf="record; else recordMissing">
+    <mat-card class="record-header">
+      <div class="header-content">
+        <div>
+          <h1>Dossier médical du patient</h1>
+          <p *ngIf="record.patient" class="patient-name">
+            {{ record.patient.firstName }} {{ record.patient.lastName }}
+          </p>
+        </div>
+        <div class="header-actions">
+          <button mat-stroked-button color="primary" (click)="refresh()">
+            <mat-icon>refresh</mat-icon>
+            Rafraîchir
+          </button>
+        </div>
+      </div>
+      <div class="meta">
+        <span>Créé le {{ record.createdAt | date: 'longDate' }}</span>
+        <span>Dernière mise à jour {{ record.updatedAt | date: 'longDate' }}</span>
+      </div>
+    </mat-card>
+
+    <mat-tab-group class="record-tabs">
+      <mat-tab label="Résumé médical">
+        <app-medical-record-form
+          [record]="record"
+          [saving]="savingRecord"
+          (save)="onRecordSave($event)"
+        ></app-medical-record-form>
+      </mat-tab>
+      <mat-tab label="Documents">
+        <app-medical-documents
+          [documents]="documents"
+          [loading]="documentsLoading"
+          [uploading]="uploadingDocument"
+          [deletingDocumentId]="deletingDocumentId"
+          (upload)="onDocumentUpload($event)"
+          (delete)="onDeleteDocument($event)"
+          (preview)="onPreviewDocument($event)"
+        ></app-medical-documents>
+      </mat-tab>
+    </mat-tab-group>
+
+    <app-medical-document-viewer
+      *ngIf="selectedDocument"
+      [document]="selectedDocument"
+      (close)="onCloseViewer()"
+    ></app-medical-document-viewer>
+  </ng-container>
+</div>
+
+<ng-template #recordLoading>
+  <div class="loading-state">
+    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+    <p>Chargement du dossier médical...</p>
+  </div>
+</ng-template>
+
+<ng-template #recordMissing>
+  <mat-card class="empty-state">
+    <mat-icon color="primary">health_and_safety</mat-icon>
+    <h2 *ngIf="recordNotFound; else recordErrorTitle">Aucun dossier médical trouvé</h2>
+    <ng-template #recordErrorTitle>
+      <h2>Impossible de charger le dossier médical</h2>
+    </ng-template>
+    <p *ngIf="recordNotFound; else retryMessage">
+      Ce patient ne dispose pas encore d'un dossier médical. Créez-en un pour commencer à
+      suivre ses antécédents et documents.
+    </p>
+    <ng-template #retryMessage>
+      <p>
+        Une erreur est survenue lors du chargement du dossier médical. Vous pouvez tenter de le recréer ou
+        réessayer plus tard.
+      </p>
+    </ng-template>
+    <button mat-raised-button color="primary" (click)="createRecord()" [disabled]="creatingRecord">
+      <mat-icon>note_add</mat-icon>
+      {{ creatingRecord ? 'Création en cours...' : 'Créer un dossier médical' }}
+    </button>
+  </mat-card>
+</ng-template>

@@ -1,0 +1,41 @@
+<mat-card class="document-viewer" *ngIf="document">
+  <div class="viewer-header">
+    <div>
+      <h3>{{ document?.description || 'Document médical' }}</h3>
+      <p>{{ document?.createdAt | date: 'fullDate' }}</p>
+    </div>
+    <div class="viewer-actions">
+      <a
+        mat-stroked-button
+        color="primary"
+        [href]="document?.url"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <mat-icon>open_in_new</mat-icon>
+        Ouvrir dans un nouvel onglet
+      </a>
+      <button mat-icon-button color="primary" (click)="onClose()" matTooltip="Fermer la prévisualisation">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="viewer-content">
+    <ng-container *ngIf="isPdf; else notPdf">
+      <iframe [src]="document?.url | safeUrl" title="Prévisualisation PDF"></iframe>
+    </ng-container>
+    <ng-template #notPdf>
+      <ng-container *ngIf="isImage; else unsupported">
+        <img [src]="document?.url" [alt]="document?.description || 'Document médical'" />
+      </ng-container>
+    </ng-template>
+
+    <ng-template #unsupported>
+      <div class="unsupported">
+        <mat-icon>insert_drive_file</mat-icon>
+        <p>Ce type de fichier n'est pas prévisualisable ici. Téléchargez-le pour le consulter.</p>
+      </div>
+    </ng-template>
+  </div>
+</mat-card>

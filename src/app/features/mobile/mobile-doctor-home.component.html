@@ -1,0 +1,78 @@
+<ion-page class="mobile-doctor-home">
+  <ion-header translucent="true">
+    <ion-toolbar color="primary" class="main-toolbar">
+      <ion-title>{{ greetingMessage }}, {{ doctorName }}</ion-title>
+      <ion-buttons slot="end">
+        <ion-button fill="clear">
+          <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+    <ion-toolbar class="sub-toolbar" color="light">
+      <ion-title size="small">Vue d'ensemble de votre activité</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content fullscreen="true" class="ion-padding">
+    <ion-grid fixed="true" class="stats-grid">
+      <ion-row>
+        <ion-col size="12" sizeMd="4" *ngFor="let stat of stats">
+          <ion-card class="stat-card">
+            <ion-card-header>
+              <ion-card-subtitle>
+                <ion-icon [name]="stat.icon"></ion-icon>
+                {{ stat.label }}
+              </ion-card-subtitle>
+              <ion-card-title>{{ stat.value }}</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <span class="trend">{{ stat.trend }}</span>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <ion-card class="schedule-card">
+      <ion-card-header>
+        <ion-card-title>Agenda du jour</ion-card-title>
+        <ion-card-subtitle>{{ todaysSchedule.length }} consultations planifiées</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list lines="none">
+          <ion-item *ngFor="let entry of todaysSchedule">
+            <ion-icon slot="start" [name]="entry.type === 'Téléconsultation' ? 'videocam-outline' : 'business-outline'"></ion-icon>
+            <ion-label>
+              <h3>{{ entry.patient }}</h3>
+              <p>{{ entry.time }} • {{ entry.type }}</p>
+            </ion-label>
+            <ion-badge slot="end" color="primary">{{ entry.status }}</ion-badge>
+          </ion-item>
+        </ion-list>
+        <ion-button expand="block" fill="clear">Ouvrir l'agenda</ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="tasks-card">
+      <ion-card-header>
+        <ion-card-title>À suivre</ion-card-title>
+        <ion-card-subtitle>Actions prioritaires</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list inset="true">
+          <ion-item *ngFor="let task of urgentTasks">
+            <ion-icon slot="start" [name]="task.icon"></ion-icon>
+            <ion-label>
+              <h3>{{ task.title }}</h3>
+              <p>{{ task.description }}</p>
+            </ion-label>
+            <ion-chip slot="end" color="danger" *ngIf="task.status === 'urgent'">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <ion-label>Urgent</ion-label>
+            </ion-chip>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+  </ion-content>
+</ion-page>

@@ -14,6 +14,20 @@ export enum AppointmentStatus {
   NO_SHOW = 'NO_SHOW'
 }
 
+export enum MedicalRecordEntryType {
+  CONSULTATION_NOTE = 'CONSULTATION_NOTE',
+  PRESCRIPTION = 'PRESCRIPTION',
+  EXAMINATION = 'EXAMINATION',
+  DOCUMENT = 'DOCUMENT'
+}
+
+export enum MedicalDocumentType {
+  PRESCRIPTION = 'ORDONNANCE',
+  REPORT = 'BILAN',
+  IMAGING = 'RADIO',
+  OTHER = 'AUTRE'
+}
+
 export enum MedicalSpecialty {
   GENERAL_PRACTICE = 'GENERAL_PRACTICE',
   CARDIOLOGY = 'CARDIOLOGY',
@@ -224,6 +238,70 @@ export interface Appointment {
   prescriptions?: Prescription[];
 }
 
+export interface MedicalRecordEntry {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  appointmentId?: string;
+  createdAt: string;
+  updatedAt: string;
+  type: MedicalRecordEntryType;
+  title: string;
+  content: string;
+  tags?: string[];
+}
+
+export interface MedicalDocument {
+  id: string;
+  recordId: string;
+  type: MedicalDocumentType | string;
+  url: string;
+  description?: string;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+export interface MedicalRecord {
+  id: string;
+  patientId: string;
+  bloodGroup?: string;
+  allergies?: string;
+  chronicDiseases?: string;
+  familyHistory?: string;
+  createdAt: string;
+  updatedAt: string;
+  patient?: User;
+  consultations?: Consultation[];
+  documents?: MedicalDocument[];
+}
+
+export interface MedicalRecordSummaryDto {
+  bloodGroup?: string | null;
+  allergies?: string | null;
+  chronicDiseases?: string | null;
+  familyHistory?: string | null;
+}
+
+export interface MedicalDocumentUploadDto {
+  type: MedicalDocumentType | string;
+  description?: string | null;
+  file: File;
+}
+
+export interface Consultation {
+  id: string;
+  appointmentId: string;
+  doctorId: string;
+  patientId: string;
+  startedAt?: string;
+  endedAt?: string;
+  notes?: string;
+  diagnosis?: string;
+  treatmentPlan?: string;
+  followUpDate?: string;
+  medicalRecords?: MedicalRecordEntry[];
+}
+
 // DTOs
 export interface LoginDto {
   email: string;
@@ -264,4 +342,26 @@ export interface UpdateAppointmentDto {
   status?: AppointmentStatus;
   hospitalId?: string;
   departmentId?: string;
+}
+
+export interface StartConsultationDto {
+  appointmentId: string;
+}
+
+export interface UpdateConsultationDto {
+  notes?: string;
+  diagnosis?: string;
+  treatmentPlan?: string;
+  followUpDate?: string;
+}
+
+export interface CompleteConsultationDto extends UpdateConsultationDto {
+  summary?: string;
+}
+
+export interface CreateMedicalRecordEntryDto {
+  type: MedicalRecordEntryType;
+  title: string;
+  content: string;
+  tags?: string[];
 }
