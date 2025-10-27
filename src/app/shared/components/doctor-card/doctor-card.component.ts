@@ -4,7 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
-import { DoctorProfile, MedicalSpecialty } from '@app/core/models';
+import { DoctorProfile, HospitalSummary, MedicalSpecialty } from '@app/core/models';
 import { getMedicalSpecialtyLabel } from '@app/shared/constants/medical.constants';
 
 @Component({
@@ -29,6 +29,16 @@ export class DoctorCardComponent {
 
   get specialtyLabel(): string {
     return getMedicalSpecialtyLabel(this.doctor.specialty as MedicalSpecialty);
+  }
+
+  get hasHospitals(): boolean {
+    return (this.doctor.hospitals ?? []).length > 0;
+  }
+
+  get hospitalChips(): string[] {
+    return (this.doctor.hospitals ?? []).map((hospital: HospitalSummary) =>
+      hospital.city ? `${hospital.name} (${hospital.city})` : hospital.name
+    );
   }
 
   onAction(): void {

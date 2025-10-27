@@ -1,0 +1,53 @@
+.profile-form-container {
+  display: flex;
+  justify-content: center;
+  padding: 32px;
+}
+
+mat-card {
+  width: 100%;
+  max-width: 720px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.assignment-section {
+  margin: 24px 0;
+
+  h2 {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .muted {
+    margin: 0 0 16px 0;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+.assignment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+mat-spinner {
+  margin: 0;
+}

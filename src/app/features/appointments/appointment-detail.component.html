@@ -1,0 +1,211 @@
+<div class="appointment-detail" *ngIf="appointment && !loading; else loadingState">
+  <div class="header">
+    <button mat-button routerLink="/appointments">
+      <mat-icon>arrow_back</mat-icon>
+      Retour aux rendez-vous
+    </button>
+    <div class="status">
+      <mat-chip [color]="appointment.status === AppointmentStatus.CONFIRMED ? 'primary' : 'accent'" selected>
+        {{ getStatusLabel(appointment.status) }}
+      </mat-chip>
+      <span>{{ formatDate(appointment.appointmentDate) }}</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <mat-card class="summary-card">
+      <mat-card-title>Résumé de la consultation</mat-card-title>
+      <mat-card-content>
+        <div class="info-row">
+          <mat-icon>medical_services</mat-icon>
+          <div>
+            <strong>Médecin</strong>
+            <p>Dr. {{ appointment.doctor?.firstName }} {{ appointment.doctor?.lastName }} • {{ getSpecialty() }}</p>
+          </div>
+        </div>
+        <div class="info-row">
+          <mat-icon>person</mat-icon>
+          <div>
+            <strong>Patient</strong>
+            <p>{{ appointment.patient?.firstName }} {{ appointment.patient?.lastName }}</p>
+          </div>
+        </div>
+        <div class="info-row" *ngIf="appointment.hospital?.name">
+          <mat-icon>domain</mat-icon>
+          <div>
+            <strong>Établissement</strong>
+            <p>{{ appointment.hospital.name }}<span *ngIf="appointment.hospital.city"> – {{ appointment.hospital.city }}</span></p>
+          </div>
+        </div>
+        <div class="info-row" *ngIf="appointment.department?.name">
+          <mat-icon>apartment</mat-icon>
+          <div>
+            <strong>Service</strong>
+            <p>{{ appointment.department.name }}</p>
+          </div>
+        </div>
+        <div class="info-row">
+          <mat-icon>assignment</mat-icon>
+          <div>
+            <strong>Motif</strong>
+            <p>{{ appointment.reason }}</p>
+          </div>
+        </div>
+        <div class="info-row" *ngIf="appointment.notes">
+          <mat-icon>notes</mat-icon>
+          <div>
+            <strong>Notes</strong>
+            <p>{{ appointment.notes }}</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="vitals-card">
+      <mat-card-title>Paramètres vitaux</mat-card-title>
+      <mat-card-content>
+        <form *ngIf="isNurse" [formGroup]="vitalsForm" (ngSubmit)="recordVitals()" class="vitals-form">
+          <div class="vitals-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Température (°C)</mat-label>
+              <input matInput type="number" formControlName="temperature" step="0.1">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Pouls (bpm)</mat-label>
+              <input matInput type="number" formControlName="heartRate">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>FR (rpm)</mat-label>
+              <input matInput type="number" formControlName="respiratoryRate">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>TA systolique</mat-label>
+              <input matInput type="number" formControlName="bloodPressureSystolic">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>TA diastolique</mat-label>
+              <input matInput type="number" formControlName="bloodPressureDiastolic">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Poids (kg)</mat-label>
+              <input matInput type="number" formControlName="weight" step="0.1">
+            </mat-form-field>
+          </div>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notes infirmières</mat-label>
+            <textarea matInput rows="2" formControlName="notes"></textarea>
+          </mat-form-field>
+          <div class="actions">
+            <button mat-raised-button color="primary" type="submit" [disabled]="savingVitals">
+              <span *ngIf="!savingVitals">Enregistrer</span>
+              <mat-spinner *ngIf="savingVitals" diameter="20"></mat-spinner>
+            </button>
+          </div>
+        </form>
+
+        <mat-divider></mat-divider>
+
+        <mat-list *ngIf="vitals.length > 0; else noVitals">
+          <mat-list-item *ngFor="let vital of vitals">
+            <div matListItemTitle>{{ vital.recordedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+            <div matListItemLine>
+              <span *ngIf="vital.temperature">🌡 {{ vital.temperature }}°C • </span>
+              <span *ngIf="vital.heartRate">❤️ {{ vital.heartRate }} bpm • </span>
+              <span *ngIf="vital.respiratoryRate">🫁 {{ vital.respiratoryRate }} rpm • </span>
+              <span *ngIf="vital.bloodPressureSystolic && vital.bloodPressureDiastolic">🩺 {{ vital.bloodPressureSystolic }}/{{ vital.bloodPressureDiastolic }} mmHg • </span>
+              <span *ngIf="vital.weight">⚖️ {{ vital.weight }} kg</span>
+            </div>
+            <div matListItemLine *ngIf="vital.notes">"{{ vital.notes }}"</div>
+            <div matListItemLine class="muted">Infirmier·e : {{ vital.nurse?.firstName }} {{ vital.nurse?.lastName }}</div>
+          </mat-list-item>
+        </mat-list>
+        <ng-template #noVitals>
+          <p class="muted">Aucun paramètre enregistré.</p>
+        </ng-template>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="prescription-card">
+      <mat-card-title>Prescriptions médicales</mat-card-title>
+      <mat-card-content>
+        <form *ngIf="isDoctor" [formGroup]="prescriptionForm" (ngSubmit)="createPrescription()" class="prescription-form">
+          <div formArrayName="items" class="items">
+            <div class="item" *ngFor="let item of prescriptionItems.controls; let i = index; trackBy: trackByPrescriptionItem" [formGroupName]="i">
+              <div class="item-header">
+                <h3>Médicament {{ i + 1 }}</h3>
+                <button mat-icon-button color="warn" type="button" (click)="removePrescriptionItem(i)" [disabled]="prescriptionItems.length === 1">
+                  <mat-icon>remove_circle</mat-icon>
+                </button>
+              </div>
+              <mat-form-field appearance="outline">
+                <mat-label>Médicament</mat-label>
+                <input matInput formControlName="medication" required>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Dosage</mat-label>
+                <input matInput formControlName="dosage" required>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Fréquence</mat-label>
+                <input matInput formControlName="frequency" required>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Durée</mat-label>
+                <input matInput formControlName="duration">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Instructions</mat-label>
+                <textarea matInput rows="2" formControlName="instructions"></textarea>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <button mat-stroked-button type="button" color="primary" (click)="addPrescriptionItem()">
+            <mat-icon>add</mat-icon>
+            Ajouter un médicament
+          </button>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notes du médecin</mat-label>
+            <textarea matInput rows="3" formControlName="notes"></textarea>
+          </mat-form-field>
+
+          <div class="actions">
+            <button mat-raised-button color="accent" type="submit" [disabled]="savingPrescription">
+              <span *ngIf="!savingPrescription">Valider la prescription</span>
+              <mat-spinner *ngIf="savingPrescription" diameter="20"></mat-spinner>
+            </button>
+          </div>
+        </form>
+
+        <mat-divider></mat-divider>
+
+        <div class="prescriptions" *ngIf="prescriptions.length > 0; else noPrescription">
+          <mat-card *ngFor="let prescription of prescriptions" class="prescription-item">
+            <mat-card-subtitle>{{ prescription.issuedAt | date:'dd/MM/yyyy HH:mm' }}</mat-card-subtitle>
+            <mat-card-content>
+              <ul>
+                <li *ngFor="let item of prescription.items">
+                  <strong>{{ item.medication }}</strong> – {{ item.dosage }} – {{ item.frequency }}
+                  <span *ngIf="item.duration"> ({{ item.duration }})</span>
+                  <div class="muted" *ngIf="item.instructions">{{ item.instructions }}</div>
+                </li>
+              </ul>
+              <p *ngIf="prescription.notes" class="muted">Notes : {{ prescription.notes }}</p>
+            </mat-card-content>
+          </mat-card>
+        </div>
+        <ng-template #noPrescription>
+          <p class="muted">Aucune prescription enregistrée.</p>
+        </ng-template>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<ng-template #loadingState>
+  <div class="loading-state">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Chargement des informations du rendez-vous...</p>
+  </div>
+</ng-template>

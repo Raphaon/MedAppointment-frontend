@@ -1,0 +1,142 @@
+<div class="hospital-form" [class.loading]="loading">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <h1>{{ isEditing ? 'Modifier un hôpital' : 'Créer un hôpital' }}</h1>
+        <p>Définissez l'établissement, ses services et les équipes associées.</p>
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content *ngIf="!loading; else loadingState">
+      <form [formGroup]="hospitalForm" (ngSubmit)="submit()">
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Nom de l'établissement</mat-label>
+            <input matInput formControlName="name" required>
+            <mat-error *ngIf="hospitalForm.get('name')?.hasError('required')">Nom requis</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Adresse</mat-label>
+            <input matInput formControlName="address" required>
+            <mat-error *ngIf="hospitalForm.get('address')?.hasError('required')">Adresse requise</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Ville</mat-label>
+            <input matInput formControlName="city">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Pays</mat-label>
+            <input matInput formControlName="country">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Téléphone</mat-label>
+            <input matInput formControlName="phone" placeholder="+33 1 23 45 67 89">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Email de contact</mat-label>
+            <input matInput type="email" formControlName="email">
+            <mat-error *ngIf="hospitalForm.get('email')?.hasError('email')">Adresse email invalide</mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description</mat-label>
+          <textarea matInput rows="3" formControlName="description" placeholder="Présentation de l'établissement"></textarea>
+        </mat-form-field>
+
+        <div class="services-header">
+          <div>
+            <h2>Services hospitaliers</h2>
+            <p>Ajoutez les unités de soins, associez les médecins et le personnel infirmier.</p>
+          </div>
+          <button mat-stroked-button type="button" color="primary" (click)="addService()">
+            <mat-icon>add</mat-icon>
+            Ajouter un service
+          </button>
+        </div>
+
+        <div formArrayName="services" class="services-list">
+          <ng-container *ngIf="services.length > 0; else emptyServices">
+            <div class="service-card" *ngFor="let serviceGroup of services.controls; let i = index; trackBy: trackByService" [formGroupName]="i">
+              <div class="service-header">
+                <h3>Service {{ i + 1 }}</h3>
+                <button mat-icon-button color="warn" type="button" matTooltip="Supprimer le service" (click)="removeService(i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Nom du service</mat-label>
+                <input matInput formControlName="name" required>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Description</mat-label>
+                <textarea matInput rows="2" formControlName="description"></textarea>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Spécialité principale</mat-label>
+                <mat-select formControlName="specialty">
+                  <mat-option [value]="null">Non spécifiée</mat-option>
+                  <mat-option *ngFor="let specialty of specialties" [value]="specialty.value">
+                    {{ specialty.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Médecins assignés</mat-label>
+                <mat-select formControlName="doctorIds" multiple>
+                  <mat-option *ngFor="let doctor of doctors" [value]="doctor.userId ?? doctor.id">
+                    {{ getDoctorLabel(doctor) }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Personnel infirmier</mat-label>
+                <mat-select formControlName="nurseIds" multiple>
+                  <mat-option *ngFor="let nurse of nurses" [value]="nurse.id">
+                    {{ getNurseLabel(nurse) }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </ng-container>
+        </div>
+
+        <ng-template #emptyServices>
+          <div class="empty-services">
+            <mat-icon>domain_add</mat-icon>
+            <p>Aucun service défini pour l'instant.</p>
+          </div>
+        </ng-template>
+
+        <mat-divider></mat-divider>
+
+        <div class="actions">
+          <button mat-stroked-button type="button" routerLink="/hospitals" [disabled]="saving">
+            Annuler
+          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="saving || hospitalForm.invalid">
+            <span *ngIf="!saving">{{ isEditing ? 'Mettre à jour' : 'Créer l\'hôpital' }}</span>
+            <mat-spinner *ngIf="saving" diameter="20"></mat-spinner>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<ng-template #loadingState>
+  <div class="loading-state">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Chargement des informations de l'hôpital...</p>
+  </div>
+</ng-template>

@@ -34,6 +34,28 @@
           </div>
         </div>
 
+        <div class="location-fields" *ngIf="hospitalOptions.length > 0">
+          <mat-form-field class="full-width" appearance="outline">
+            <mat-label>Établissement</mat-label>
+            <mat-select formControlName="hospitalId" (selectionChange)="onHospitalChange()">
+              <mat-option value="">Sans préférence</mat-option>
+              <mat-option *ngFor="let hospital of hospitalOptions" [value]="hospital.id">
+                {{ hospital.city ? hospital.name + ' (' + hospital.city + ')' : hospital.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="full-width" appearance="outline" *ngIf="departmentOptions.length > 0">
+            <mat-label>Service</mat-label>
+            <mat-select formControlName="departmentId">
+              <mat-option value="">Non spécifié</mat-option>
+              <mat-option *ngFor="let department of departmentOptions" [value]="department.id">
+                {{ department.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
         <mat-form-field class="full-width" appearance="outline">
           <mat-label>Date du rendez-vous</mat-label>
           <input matInput [matDatepicker]="picker" formControlName="appointmentDate"

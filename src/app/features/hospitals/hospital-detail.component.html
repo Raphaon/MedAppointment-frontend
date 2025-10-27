@@ -1,0 +1,119 @@
+<div class="hospital-detail" *ngIf="hospital && !loading; else loadingState">
+  <div class="header">
+    <div>
+      <h1>{{ hospital.name }}</h1>
+      <p class="meta">
+        <mat-icon>place</mat-icon>
+        <span>{{ hospital.address }}<span *ngIf="hospital.city">, {{ hospital.city }}</span></span>
+      </p>
+    </div>
+    <div class="actions">
+      <button mat-stroked-button type="button" (click)="refresh()">
+        <mat-icon>refresh</mat-icon>
+        Rafraîchir
+      </button>
+      <button mat-raised-button color="primary" type="button" *ngIf="canManage" (click)="editHospital()">
+        <mat-icon>edit</mat-icon>
+        Modifier
+      </button>
+      <button mat-button routerLink="/hospitals">
+        <mat-icon>arrow_back</mat-icon>
+        Retour
+      </button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <mat-card>
+      <mat-card-title>Informations générales</mat-card-title>
+      <mat-card-content>
+        <div class="info-row" *ngIf="hospital.phone">
+          <mat-icon>call</mat-icon>
+          <span>{{ hospital.phone }}</span>
+        </div>
+        <div class="info-row" *ngIf="hospital.email">
+          <mat-icon>email</mat-icon>
+          <span>{{ hospital.email }}</span>
+        </div>
+        <p class="description" *ngIf="hospital.description">{{ hospital.description }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-title>Équipe soignante</mat-card-title>
+      <mat-card-content>
+        <div class="staff-group">
+          <h3><mat-icon>local_hospital</mat-icon>Médecins ({{ getStaffByRole(UserRole.DOCTOR).length }})</h3>
+          <mat-chip-set *ngIf="getStaffByRole(UserRole.DOCTOR).length > 0; else noDoctors">
+            <mat-chip *ngFor="let doctor of getStaffByRole(UserRole.DOCTOR); trackBy: trackByStaff" color="primary" selected>
+              {{ doctor.user?.firstName }} {{ doctor.user?.lastName }}
+            </mat-chip>
+          </mat-chip-set>
+          <ng-template #noDoctors><p class="muted">Aucun médecin référencé.</p></ng-template>
+        </div>
+
+        <div class="staff-group">
+          <h3><mat-icon>vaccines</mat-icon>Infirmier·e·s ({{ getStaffByRole(UserRole.NURSE).length }})</h3>
+          <mat-chip-set *ngIf="getStaffByRole(UserRole.NURSE).length > 0; else noNurses">
+            <mat-chip *ngFor="let nurse of getStaffByRole(UserRole.NURSE); trackBy: trackByStaff" color="accent" selected>
+              {{ nurse.user?.firstName }} {{ nurse.user?.lastName }}
+            </mat-chip>
+          </mat-chip-set>
+          <ng-template #noNurses><p class="muted">Aucun personnel infirmier assigné.</p></ng-template>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <mat-card class="services-card">
+    <mat-card-title>Services &amp; unités</mat-card-title>
+    <mat-card-content>
+      <div class="service" *ngFor="let service of hospital.services; trackBy: trackByDepartment">
+        <div class="service-header">
+          <div>
+            <h3>{{ service.name }}</h3>
+            <p class="muted" *ngIf="service.specialty">{{ getDepartmentSpecialtyLabel(service) }}</p>
+          </div>
+        </div>
+        <p class="service-description" *ngIf="service.description">{{ service.description }}</p>
+
+        <div class="assignments">
+          <div>
+            <h4>Médecins</h4>
+            <mat-chip-set *ngIf="getDepartmentStaff(service, UserRole.DOCTOR).length > 0; else noDeptDoctors">
+              <mat-chip *ngFor="let doctor of getDepartmentStaff(service, UserRole.DOCTOR); trackBy: trackByStaff" color="primary" selected>
+                {{ doctor.user?.firstName }} {{ doctor.user?.lastName }}
+              </mat-chip>
+            </mat-chip-set>
+            <ng-template #noDeptDoctors><p class="muted">Aucun médecin assigné.</p></ng-template>
+          </div>
+          <div>
+            <h4>Infirmier·e·s</h4>
+            <mat-chip-set *ngIf="getDepartmentStaff(service, UserRole.NURSE).length > 0; else noDeptNurses">
+              <mat-chip *ngFor="let nurse of getDepartmentStaff(service, UserRole.NURSE); trackBy: trackByStaff" color="accent" selected>
+                {{ nurse.user?.firstName }} {{ nurse.user?.lastName }}
+              </mat-chip>
+            </mat-chip-set>
+            <ng-template #noDeptNurses><p class="muted">Aucun personnel infirmier assigné.</p></ng-template>
+          </div>
+        </div>
+        <mat-divider></mat-divider>
+      </div>
+
+      <p class="muted" *ngIf="!hospital.services || hospital.services.length === 0">
+        Aucun service n'est défini pour cet établissement.
+      </p>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<ng-template #loadingState>
+  <div class="loading-state" *ngIf="loading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Chargement de l'hôpital...</p>
+  </div>
+  <div class="loading-state" *ngIf="!loading">
+    <p>Aucun hôpital sélectionné.</p>
+    <button mat-raised-button color="primary" routerLink="/hospitals">Retour</button>
+  </div>
+</ng-template>

@@ -40,6 +40,13 @@
         <span>{{ doctor.user.email }}</span>
       </div>
 
+      <div class="info-row hospitals" *ngIf="hasHospitals">
+        <mat-icon>local_hospital</mat-icon>
+        <mat-chip-set>
+          <mat-chip *ngFor="let hospital of hospitalChips" color="primary" selected>{{ hospital }}</mat-chip>
+        </mat-chip-set>
+      </div>
+
       <p class="bio" *ngIf="doctor.bio">{{ doctor.bio }}</p>
     </div>
   </mat-card-content>

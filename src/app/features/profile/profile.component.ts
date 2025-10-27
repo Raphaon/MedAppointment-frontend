@@ -43,7 +43,8 @@ export class ProfileComponent implements OnInit {
     const labels: any = {
       [UserRole.ADMIN]: 'Administrateur',
       [UserRole.DOCTOR]: 'Médecin',
-      [UserRole.PATIENT]: 'Patient'
+      [UserRole.PATIENT]: 'Patient',
+      [UserRole.NURSE]: 'Infirmier(ère)'
     };
     return labels[this.currentUser?.role || ''] || 'Utilisateur';
   }
@@ -52,7 +53,8 @@ export class ProfileComponent implements OnInit {
     const colors: any = {
       [UserRole.ADMIN]: 'warn',
       [UserRole.DOCTOR]: 'primary',
-      [UserRole.PATIENT]: 'accent'
+      [UserRole.PATIENT]: 'accent',
+      [UserRole.NURSE]: 'primary'
     };
     return colors[this.currentUser?.role || ''] || '';
   }
@@ -61,12 +63,22 @@ export class ProfileComponent implements OnInit {
     const icons: any = {
       [UserRole.ADMIN]: 'admin_panel_settings',
       [UserRole.DOCTOR]: 'local_hospital',
-      [UserRole.PATIENT]: 'person'
+      [UserRole.PATIENT]: 'person',
+      [UserRole.NURSE]: 'vaccines'
     };
     return icons[this.currentUser?.role || ''] || 'person';
   }
 
   getSpecialtyLabel(specialty: MedicalSpecialty): string {
     return getMedicalSpecialtyLabel(specialty);
+  }
+
+  getHospitalLabel(): string {
+    if (!this.currentUser?.nurseProfile?.hospitals?.length && !this.currentUser?.doctorProfile?.hospitals?.length) {
+      return 'Non affecté';
+    }
+
+    const hospitals = this.currentUser?.nurseProfile?.hospitals ?? this.currentUser?.doctorProfile?.hospitals ?? [];
+    return hospitals.map((hospital) => hospital.city ? `${hospital.name} (${hospital.city})` : hospital.name).join(', ');
   }
 }

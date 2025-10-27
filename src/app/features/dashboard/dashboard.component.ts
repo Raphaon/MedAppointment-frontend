@@ -132,6 +132,8 @@ export class DashboardComponent {
         return 'Administrateur';
       case UserRole.DOCTOR:
         return 'Médecin';
+      case UserRole.NURSE:
+        return 'Infirmier(ère)';
       case UserRole.PATIENT:
         return 'Patient';
       default:
@@ -146,6 +148,8 @@ export class DashboardComponent {
         return 'Gérez l’activité de la plateforme en un coup d’œil.';
       case UserRole.DOCTOR:
         return 'Suivez vos consultations et accompagnez vos patients.';
+      case UserRole.NURSE:
+        return 'Préparez vos visites et centralisez les constantes vitales.';
       case UserRole.PATIENT:
         return 'Organisez vos rendez-vous et suivez votre parcours de soins.';
       default:
@@ -201,6 +205,32 @@ export class DashboardComponent {
       ];
     }
 
+    if (role === UserRole.NURSE) {
+      return [
+        {
+          route: '/appointments',
+          label: 'Rendez-vous assignés',
+          description: 'Consultez les visites du jour et préparez vos interventions',
+          emoji: '🗓️',
+          accent: 'linear-gradient(135deg, #ecfccb, #d9f99d)'
+        },
+        {
+          route: '/appointments',
+          label: 'Saisir des paramètres vitaux',
+          description: 'Accédez rapidement aux dossiers patients pour renseigner leurs constantes',
+          emoji: '💉',
+          accent: 'linear-gradient(135deg, #e0f2fe, #bae6fd)'
+        },
+        {
+          route: '/hospitals',
+          label: 'Services & équipes',
+          description: 'Consultez les services auxquels vous êtes affecté',
+          emoji: '🏥',
+          accent: 'linear-gradient(135deg, #ede9fe, #ddd6fe)'
+        }
+      ];
+    }
+
     if (role === UserRole.DOCTOR) {
       return [
         {
@@ -244,6 +274,13 @@ export class DashboardComponent {
           accent: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)'
         },
         {
+          route: '/hospitals',
+          label: 'Gestion des hôpitaux',
+          description: 'Structurez les établissements, services et équipes soignantes',
+          emoji: '🏥',
+          accent: 'linear-gradient(135deg, #fef3c7, #fde68a)'
+        },
+        {
           route: '/doctors',
           label: 'Communauté médicale',
           description: 'Accompagnez les praticiens et suivez leur activité',
@@ -283,6 +320,13 @@ export class DashboardComponent {
         label: 'Suivi patient',
         value: pending > 0 ? `${pending} rendez-vous à confirmer` : 'Agenda parfaitement synchronisé'
       });
+    } else if (role === UserRole.NURSE) {
+      const toPrepare = this.upcomingAppointments.length;
+      highlights.push({
+        emoji: '💉',
+        label: 'Visites à préparer',
+        value: toPrepare > 0 ? `${toPrepare} rendez-vous à venir` : 'Aucune visite en attente'
+      });
     } else if (role === UserRole.ADMIN) {
       const confirmationHighlight = this.adminHighlights.find((highlight) => highlight.label.includes('confirmation'));
       const userStat = this.stats.find((stat) => stat.title.toLowerCase().includes('utilisateur'));
@@ -320,6 +364,8 @@ export class DashboardComponent {
         return '🧭';
       case UserRole.DOCTOR:
         return '🩺';
+      case UserRole.NURSE:
+        return '💉';
       case UserRole.PATIENT:
         return '🌿';
       default:
