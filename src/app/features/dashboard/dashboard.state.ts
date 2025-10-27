@@ -34,6 +34,8 @@ export class DashboardState {
     shareReplay({ bufferSize: 1, refCount: true })
   );
 
+  readonly appointmentsForCurrentUser$ = this.appointments$;
+
   constructor(
     private readonly appointmentService: AppointmentService,
     private readonly authService: AuthService
