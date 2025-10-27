@@ -1,0 +1,75 @@
+<ion-page class="mobile-home">
+  <ion-header translucent="true">
+    <ion-toolbar color="primary" class="main-toolbar">
+      <ion-title>{{ greetingMessage }}, {{ patientName }}</ion-title>
+      <ion-buttons slot="end">
+        <ion-button fill="clear">
+          <ion-icon name="notifications-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+    <ion-toolbar class="sub-toolbar" color="light">
+      <ion-title size="small">Votre santé au quotidien</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content fullscreen="true" class="ion-padding">
+    <section class="quick-actions" aria-label="Actions rapides">
+      <ion-chip outline="true" *ngFor="let action of quickActions">
+        <ion-icon [name]="action.icon" slot="start"></ion-icon>
+        <ion-label>{{ action.label }}</ion-label>
+      </ion-chip>
+    </section>
+
+    <ion-card class="next-appointment" *ngIf="nextAppointments.length > 0">
+      <ion-card-header>
+        <ion-card-title>Prochain rendez-vous</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="appointment-highlight" *ngIf="nextAppointments[0] as appointment">
+          <div class="appointment-time">
+            <h3>{{ appointment.date | date: 'EEEE d MMMM' }}</h3>
+            <p>{{ appointment.time }} &bull; {{ appointment.type }}</p>
+          </div>
+          <div class="appointment-doctor">
+            <ion-icon name="person-circle-outline"></ion-icon>
+            <div>
+              <span>{{ appointment.doctor }}</span>
+              <small>{{ appointment.location }}</small>
+            </div>
+          </div>
+        </div>
+        <ion-button expand="block" fill="clear">Voir le détail</ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-list inset="true" class="health-tracking">
+      <ion-list-header>
+        <ion-label>Suivi rapide</ion-label>
+      </ion-list-header>
+      <ion-item *ngFor="let stat of healthStats">
+        <ion-icon slot="start" [name]="stat.icon"></ion-icon>
+        <ion-label>
+          <h3>{{ stat.label }}</h3>
+          <p>{{ stat.description }}</p>
+        </ion-label>
+        <ion-badge slot="end" color="tertiary">{{ stat.value }}</ion-badge>
+      </ion-item>
+    </ion-list>
+
+    <ion-list inset="true" class="reminders">
+      <ion-list-header>
+        <ion-label>Rappels</ion-label>
+      </ion-list-header>
+      <ion-item *ngFor="let reminder of reminders">
+        <ion-icon slot="start" [name]="reminder.icon"></ion-icon>
+        <ion-label>
+          <h3>{{ reminder.title }}</h3>
+          <p>{{ reminder.subtitle }}</p>
+        </ion-label>
+        <ion-badge *ngIf="reminder.status === 'ready'" slot="end" color="success">Prêt</ion-badge>
+        <ion-badge *ngIf="reminder.status === 'pending'" slot="end" color="warning">À faire</ion-badge>
+      </ion-item>
+    </ion-list>
+  </ion-content>
+</ion-page>

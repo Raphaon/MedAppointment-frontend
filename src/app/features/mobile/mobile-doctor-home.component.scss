@@ -1,0 +1,133 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.mobile-doctor-home {
+  ion-toolbar.main-toolbar {
+    --background: linear-gradient(135deg, #1e88e5 0%, #00acc1 100%);
+    --color: #ffffff;
+    --border-width: 0;
+  }
+
+  ion-toolbar.sub-toolbar {
+    --background: #f0fbff;
+    --color: #146e9c;
+    font-weight: 500;
+  }
+
+  ion-content {
+    --background: linear-gradient(180deg, #f0fbff 0%, #ffffff 45%);
+  }
+
+  .stats-grid {
+    margin-bottom: 1.5rem;
+
+    .stat-card {
+      border-radius: 18px;
+      box-shadow: 0 16px 30px rgba(30, 136, 229, 0.2);
+      background: linear-gradient(145deg, #ffffff 0%, #f5fbff 100%);
+
+      ion-card-subtitle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #1e88e5;
+
+        ion-icon {
+          font-size: 1.4rem;
+        }
+      }
+
+      ion-card-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #0f3057;
+      }
+
+      .trend {
+        color: #1e88e5;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .schedule-card,
+  .tasks-card {
+    border-radius: 18px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 14px 28px rgba(15, 48, 87, 0.12);
+
+    ion-card-title {
+      font-weight: 700;
+      color: #0f3057;
+    }
+
+    ion-card-subtitle {
+      color: #4186b7;
+      font-weight: 500;
+    }
+  }
+
+  .schedule-card {
+    ion-item {
+      --padding-start: 0.75rem;
+      --background: transparent;
+      margin-bottom: 0.75rem;
+      border-radius: 14px;
+      background: rgba(30, 136, 229, 0.08);
+
+      ion-icon {
+        font-size: 1.6rem;
+        color: #1e88e5;
+      }
+
+      ion-label h3 {
+        margin: 0;
+        font-weight: 600;
+        color: #0f3057;
+      }
+
+      ion-label p {
+        margin: 0.2rem 0 0;
+        color: #4186b7;
+      }
+
+      ion-badge {
+        text-transform: none;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .tasks-card {
+    ion-item {
+      --background: transparent;
+      --inner-padding-end: 0.5rem;
+
+      ion-icon {
+        font-size: 1.5rem;
+        color: #00acc1;
+      }
+
+      ion-label h3 {
+        margin: 0;
+        font-weight: 600;
+        color: #0f3057;
+      }
+
+      ion-label p {
+        margin: 0.2rem 0 0;
+        color: #4186b7;
+        font-size: 0.9rem;
+      }
+
+      ion-chip {
+        --background: rgba(255, 82, 82, 0.15);
+        --color: #d32f2f;
+        font-weight: 600;
+      }
+    }
+  }
+}

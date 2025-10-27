@@ -100,5 +100,28 @@ export const routes: Routes = [
       }
     ]
   },
+  {
+    path: 'mobile',
+    canActivate: [AuthGuard],
+    children: [
+      {
+        path: 'patient',
+        loadComponent: () =>
+          import('./features/mobile/mobile-patient-home.component').then(
+            (m) => m.MobilePatientHomeComponent
+          ),
+        data: { roles: [UserRole.PATIENT] }
+      },
+      {
+        path: 'doctor',
+        loadComponent: () =>
+          import('./features/mobile/mobile-doctor-home.component').then(
+            (m) => m.MobileDoctorHomeComponent
+          ),
+        data: { roles: [UserRole.DOCTOR] }
+      },
+      { path: '', redirectTo: 'patient', pathMatch: 'full' }
+    ]
+  },
   { path: '**', redirectTo: '/dashboard' }
 ];
