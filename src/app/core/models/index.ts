@@ -20,6 +20,13 @@ export enum MedicalRecordEntryType {
   DOCUMENT = 'DOCUMENT'
 }
 
+export enum MedicalDocumentType {
+  PRESCRIPTION = 'ORDONNANCE',
+  REPORT = 'BILAN',
+  IMAGING = 'RADIO',
+  OTHER = 'AUTRE'
+}
+
 export enum MedicalSpecialty {
   GENERAL_PRACTICE = 'GENERAL_PRACTICE',
   CARDIOLOGY = 'CARDIOLOGY',
@@ -98,6 +105,43 @@ export interface MedicalRecordEntry {
   title: string;
   content: string;
   tags?: string[];
+}
+
+export interface MedicalDocument {
+  id: string;
+  recordId: string;
+  type: MedicalDocumentType | string;
+  url: string;
+  description?: string;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+export interface MedicalRecord {
+  id: string;
+  patientId: string;
+  bloodGroup?: string;
+  allergies?: string;
+  chronicDiseases?: string;
+  familyHistory?: string;
+  createdAt: string;
+  updatedAt: string;
+  patient?: User;
+  consultations?: Consultation[];
+  documents?: MedicalDocument[];
+}
+
+export interface MedicalRecordSummaryDto {
+  bloodGroup?: string | null;
+  allergies?: string | null;
+  chronicDiseases?: string | null;
+  familyHistory?: string | null;
+}
+
+export interface MedicalDocumentUploadDto {
+  type: MedicalDocumentType | string;
+  description?: string | null;
+  file: File;
 }
 
 export interface Consultation {

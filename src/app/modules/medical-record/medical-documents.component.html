@@ -1,0 +1,118 @@
+<mat-card class="documents-card">
+  <h2>Ajouter un document médical</h2>
+  <div class="upload-container" [class.disabled]="uploading">
+    <div class="file-input-wrapper">
+      <input
+        type="file"
+        #fileInput
+        (change)="onFileSelected($event)"
+        accept="application/pdf,image/*"
+      />
+      <button mat-stroked-button color="primary" (click)="triggerFileInput(fileInput)" [disabled]="uploading">
+        <mat-icon>upload</mat-icon>
+        {{ selectedFile ? 'Modifier le fichier' : 'Sélectionner un fichier' }}
+      </button>
+      <div class="file-name" *ngIf="selectedFile">
+        <mat-icon>description</mat-icon>
+        <span>{{ selectedFile.name }}</span>
+      </div>
+    </div>
+
+    <form [formGroup]="uploadForm" class="upload-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Type de document</mat-label>
+        <mat-select formControlName="type">
+          <mat-option *ngFor="let option of documentTypeOptions" [value]="option.value">
+            {{ option.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea
+          matInput
+          rows="3"
+          formControlName="description"
+          placeholder="Ajoutez un contexte ou des instructions"
+        ></textarea>
+      </mat-form-field>
+    </form>
+
+    <div class="upload-actions">
+      <button mat-raised-button color="primary" (click)="submitUpload()" [disabled]="uploading">
+        <ng-container *ngIf="!uploading; else uploadingState">
+          <mat-icon>cloud_upload</mat-icon>
+          Téléverser
+        </ng-container>
+        <ng-template #uploadingState>
+          <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+        </ng-template>
+      </button>
+      <p class="error" *ngIf="uploadError">{{ uploadError }}</p>
+    </div>
+  </div>
+</mat-card>
+
+<mat-card class="documents-list-card">
+  <h2>Documents disponibles</h2>
+  <div class="documents-list" *ngIf="!loading; else loadingDocuments">
+    <ng-container *ngIf="documents.length; else noDocuments">
+      <mat-list>
+        <mat-list-item *ngFor="let document of documents; trackBy: trackByDocumentId">
+          <mat-icon matListIcon>description</mat-icon>
+          <div matLine class="document-title">
+            {{ formatDocumentType(document.type) }}
+            <span class="document-date">Ajouté le {{ document.createdAt | date: 'short' }}</span>
+          </div>
+          <div matLine class="document-description">
+            {{ document.description || 'Aucune description fournie' }}
+          </div>
+          <div class="document-actions">
+            <button mat-icon-button color="primary" (click)="onPreview(document)" matTooltip="Prévisualiser">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <a
+              mat-icon-button
+              color="primary"
+              [href]="document.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              matTooltip="Télécharger"
+            >
+              <mat-icon>download</mat-icon>
+            </a>
+            <button
+              mat-icon-button
+              color="warn"
+              (click)="onDelete(document)"
+              [disabled]="deletingDocumentId === document.id"
+              matTooltip="Supprimer"
+            >
+              <ng-container *ngIf="deletingDocumentId === document.id; else deleteIcon">
+                <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+              </ng-container>
+              <ng-template #deleteIcon>
+                <mat-icon>delete</mat-icon>
+              </ng-template>
+            </button>
+          </div>
+        </mat-list-item>
+      </mat-list>
+    </ng-container>
+  </div>
+</mat-card>
+
+<ng-template #loadingDocuments>
+  <div class="loading">
+    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+    <p>Chargement des documents...</p>
+  </div>
+</ng-template>
+
+<ng-template #noDocuments>
+  <div class="empty-documents">
+    <mat-icon>folder_open</mat-icon>
+    <p>Aucun document médical n'a encore été ajouté.</p>
+  </div>
+</ng-template>
