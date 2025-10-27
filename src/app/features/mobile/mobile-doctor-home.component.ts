@@ -18,12 +18,11 @@ import {
   IonLabel,
   IonList,
   IonListHeader,
-  IonPage,
   IonRow,
   IonTitle,
   IonToolbar
 } from '@ionic/angular/standalone';
-import { DatePipe, NgFor, NgIf } from '@angular/common';
+import { CommonModule, NgFor, NgIf } from '@angular/common';
 
 interface ScheduleEntry {
   id: string;
@@ -52,6 +51,7 @@ interface TaskReminder {
   selector: 'app-mobile-doctor-home',
   standalone: true,
   imports: [
+    CommonModule,
     IonBadge,
     IonButton,
     IonButtons,
@@ -70,13 +70,11 @@ interface TaskReminder {
     IonLabel,
     IonList,
     IonListHeader,
-    IonPage,
     IonRow,
     IonTitle,
     IonToolbar,
     NgFor,
-    NgIf,
-    DatePipe
+    NgIf
   ],
   templateUrl: './mobile-doctor-home.component.html',
   styleUrls: ['./mobile-doctor-home.component.scss'],
