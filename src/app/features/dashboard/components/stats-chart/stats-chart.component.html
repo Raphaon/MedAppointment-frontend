@@ -1,0 +1,45 @@
+<section class="stats-card app-surface">
+  <header class="stats-card__header">
+    <div>
+      <p class="stats-card__title">{{ title }}</p>
+      <p class="stats-card__subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+    </div>
+    <div class="stats-card__metric" *ngIf="primaryValue">
+      <span class="stats-card__metric-value">{{ primaryValue }}</span>
+      <span class="stats-card__metric-label" *ngIf="primaryLabel">{{ primaryLabel }}</span>
+    </div>
+  </header>
+
+  <p class="stats-card__description" *ngIf="description">{{ description }}</p>
+
+  <div class="stats-card__visual" [ngSwitch]="type">
+    <svg *ngSwitchCase="'line'" [attr.viewBox]="viewBox" role="img" aria-hidden="true">
+      <defs>
+        <linearGradient id="lineGradient" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" [attr.stop-color]="accent" stop-opacity="0.32"></stop>
+          <stop offset="100%" [attr.stop-color]="accent" stop-opacity="0"></stop>
+        </linearGradient>
+      </defs>
+      <path class="line-fill" [attr.d]="lineFillPath" fill="url(#lineGradient)"></path>
+      <path class="line-path" [attr.d]="linePath" [attr.stroke]="accent"></path>
+    </svg>
+
+    <div class="stats-card__pie" *ngSwitchCase="'pie'" [style.background]="pieBackground" aria-hidden="true"></div>
+
+    <div class="stats-card__bars" *ngSwitchCase="'bar'">
+      <div class="bar" *ngFor="let bar of barHeights">
+        <div class="bar__indicator" [style.height.%]="bar.height" [style.background]="accent"></div>
+        <span class="bar__label">{{ bar.label }}</span>
+        <span class="bar__value">{{ bar.value }}</span>
+      </div>
+    </div>
+  </div>
+
+  <ul class="stats-card__legend" *ngIf="labels.length">
+    <li *ngFor="let label of labels; let index = index">
+      <span class="legend-dot" [style.background]="type === 'pie' ? getPaletteColor(index) : accent"></span>
+      <span class="legend-label">{{ label }}</span>
+      <span class="legend-value" *ngIf="series[index] !== undefined">{{ series[index] }}</span>
+    </li>
+  </ul>
+</section>

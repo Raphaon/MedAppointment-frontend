@@ -1,0 +1,19 @@
+<article class="dashboard-card shadow-hover" [style.background-image]="accent">
+  <div class="dashboard-card__header">
+    <div class="dashboard-card__icon" *ngIf="icon" aria-hidden="true">{{ icon }}</div>
+    <div>
+      <p class="dashboard-card__title">{{ title }}</p>
+      <p class="dashboard-card__description" *ngIf="description">{{ description }}</p>
+    </div>
+  </div>
+
+  <p class="dashboard-card__value">{{ value }}</p>
+
+  <div class="dashboard-card__trend" *ngIf="trendValue">
+    <span class="dashboard-card__trend-value" [class.positive]="trendPositive" [class.negative]="trendPositive === false">
+      <span class="bullet" aria-hidden="true"></span>
+      {{ trendValue }}
+    </span>
+    <span class="dashboard-card__trend-label" *ngIf="trendLabel">{{ trendLabel }}</span>
+  </div>
+</article>
