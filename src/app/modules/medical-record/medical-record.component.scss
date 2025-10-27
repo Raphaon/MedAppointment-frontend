@@ -1,0 +1,88 @@
+.medical-record {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+.record-header {
+  padding: 24px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.patient-name {
+  margin: 4px 0 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.header-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: rgba(30, 41, 59, 0.7);
+  font-size: 14px;
+}
+
+.record-tabs {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 320px;
+}
+
+.empty-state {
+  margin: 48px auto;
+  max-width: 520px;
+  text-align: center;
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+@media (max-width: 768px) {
+  .medical-record {
+    padding: 16px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+}

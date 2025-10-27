@@ -100,5 +100,12 @@ export const routes: Routes = [
       }
     ]
   },
+  {
+    path: 'medical-records/:patientId',
+    canActivate: [AuthGuard],
+    data: { roles: [UserRole.DOCTOR, UserRole.ADMIN] },
+    loadComponent: () =>
+      import('./modules/medical-record/medical-record.component').then((m) => m.MedicalRecordComponent)
+  },
   { path: '**', redirectTo: '/dashboard' }
 ];

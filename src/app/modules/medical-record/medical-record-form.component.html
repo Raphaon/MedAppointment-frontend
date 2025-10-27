@@ -1,0 +1,61 @@
+<mat-card class="record-summary-card">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="record-form">
+    <div class="form-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Groupe sanguin</mat-label>
+        <mat-select formControlName="bloodGroup">
+          <mat-option value="">Non précisé</mat-option>
+          <mat-option *ngFor="let option of bloodGroupOptions" [value]="option">
+            {{ option }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Allergies</mat-label>
+        <textarea
+          matInput
+          rows="4"
+          formControlName="allergies"
+          placeholder="Indiquez les allergies connues, séparées par des virgules"
+        ></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Pathologies chroniques</mat-label>
+        <textarea
+          matInput
+          rows="4"
+          formControlName="chronicDiseases"
+          placeholder="Ex : Diabète de type 2, Hypertension, Asthme..."
+        ></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Antécédents familiaux</mat-label>
+        <textarea
+          matInput
+          rows="4"
+          formControlName="familyHistory"
+          placeholder="Pathologies familiales, facteurs génétiques"
+        ></textarea>
+      </mat-form-field>
+    </div>
+
+    <div class="form-actions">
+      <button mat-stroked-button type="button" (click)="resetForm()" [disabled]="saving">
+        <mat-icon>restart_alt</mat-icon>
+        Réinitialiser
+      </button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="saving || !hasChanges">
+        <ng-container *ngIf="!saving; else savingLabel">
+          <mat-icon>save</mat-icon>
+          Enregistrer
+        </ng-container>
+        <ng-template #savingLabel>
+          <mat-progress-spinner mode="indeterminate" diameter="20"></mat-progress-spinner>
+        </ng-template>
+      </button>
+    </div>
+  </form>
+</mat-card>
