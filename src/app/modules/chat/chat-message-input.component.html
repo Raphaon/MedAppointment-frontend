@@ -1,0 +1,31 @@
+<form class="message-input" [formGroup]="form" (ngSubmit)="submit()">
+  <mat-form-field appearance="outline" class="message-field">
+    <mat-label>Écrire un message</mat-label>
+    <textarea matInput rows="3" formControlName="content" placeholder="Tapez votre message..."></textarea>
+  </mat-form-field>
+
+  <div class="actions">
+    <button mat-icon-button type="button" (click)="fileInput.click()" [disabled]="disabled">
+      <mat-icon>attach_file</mat-icon>
+    </button>
+    <input #fileInput type="file" (change)="onFileSelected($event)" multiple hidden />
+
+    <span class="attachments-count" *ngIf="selectedFiles.length">
+      {{ selectedFiles.length }} pièce(s) jointe(s)
+    </span>
+
+    <button mat-flat-button color="primary" type="submit" [disabled]="disabled">
+      <mat-icon>send</mat-icon>
+      <span>Envoyer</span>
+    </button>
+  </div>
+
+  <mat-chip-set *ngIf="selectedFiles.length" class="chips">
+    <mat-chip *ngFor="let file of selectedFiles; let i = index" (removed)="removeFile(i)">
+      {{ file.name }}
+      <button matChipRemove type="button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-chip>
+  </mat-chip-set>
+</form>

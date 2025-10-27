@@ -1,0 +1,25 @@
+<div class="conversation-list">
+  <div class="loading" *ngIf="loading">
+    <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
+  </div>
+
+  <mat-nav-list *ngIf="!loading && conversations.length; else emptyState">
+    <a
+      mat-list-item
+      *ngFor="let conversation of conversations; trackBy: trackByConversation"
+      (click)="onSelect(conversation)"
+      [class.active]="isSelected(conversation)"
+    >
+      <span matListItemTitle>{{ conversation | conversationTitle: currentUserId }}</span>
+      <span matListItemLine>{{ conversationDescription(conversation) }}</span>
+      <span matListItemMeta>
+        <span class="date">{{ conversation.updatedAt | date: 'shortTime' }}</span>
+        <span class="badge" *ngIf="conversation.unreadCount">{{ conversation.unreadCount }}</span>
+      </span>
+    </a>
+  </mat-nav-list>
+</div>
+
+<ng-template #emptyState>
+  <div class="empty">Aucune conversation pour le moment</div>
+</ng-template>
