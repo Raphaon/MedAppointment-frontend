@@ -1,0 +1,35 @@
+<div class="messages" *ngIf="messages?.length; else emptyState">
+  <div
+    class="message"
+    *ngFor="let message of messages; trackBy: trackByMessage"
+    [class.outgoing]="isOutgoing(message)"
+    [class.incoming]="!isOutgoing(message)"
+  >
+    <div class="meta">
+      <span class="sender">{{ message.senderName }}</span>
+      <span class="time">{{ message.createdAt | date: 'short' }}</span>
+    </div>
+    <div class="content" *ngIf="message.content">
+      {{ message.content }}
+    </div>
+    <div class="attachments" *ngIf="message.attachments?.length">
+      <a
+        class="attachment"
+        *ngFor="let attachment of message.attachments; trackBy: trackByAttachment"
+        [href]="attachment.url"
+        target="_blank"
+        rel="noopener"
+      >
+        <mat-icon>attach_file</mat-icon>
+        <div class="info">
+          <span class="name">{{ attachment.fileName }}</span>
+          <span class="size" *ngIf="attachment.size">{{ formatFileSize(attachment.size) }}</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<ng-template #emptyState>
+  <div class="empty">Aucun message dans cette conversation.</div>
+</ng-template>

@@ -365,3 +365,60 @@ export interface CreateMedicalRecordEntryDto {
   content: string;
   tags?: string[];
 }
+
+// Chat
+export type ChatParticipantRole = 'DOCTOR' | 'PATIENT' | 'NURSE' | 'ADMIN';
+
+export interface ChatParticipant {
+  id: string;
+  name: string;
+  role: ChatParticipantRole | string;
+  avatarUrl?: string;
+}
+
+export interface ChatAttachment {
+  id: string;
+  fileName: string;
+  fileType: string;
+  url: string;
+  size?: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  senderRole?: ChatParticipantRole | string;
+  content?: string;
+  createdAt: string;
+  attachments?: ChatAttachment[];
+  readBy: string[];
+}
+
+export interface ChatConversation {
+  id: string;
+  participants: ChatParticipant[];
+  createdAt: string;
+  updatedAt: string;
+  lastMessage?: ChatMessage;
+  unreadCount: number;
+  topic?: string;
+}
+
+export interface CreateChatConversationDto {
+  participantName: string;
+  participantId?: string;
+  participantRole?: ChatParticipantRole;
+}
+
+export interface ChatMessageDraft {
+  content?: string;
+  files?: File[];
+}
+
+export interface SendChatMessagePayload extends ChatMessageDraft {
+  senderId: string;
+  senderName: string;
+  senderRole?: ChatParticipantRole;
+}

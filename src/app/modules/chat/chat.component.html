@@ -1,0 +1,87 @@
+<div class="chat-container">
+  <mat-card class="conversation-panel">
+    <div class="conversation-header">
+      <h2>Conversations</h2>
+      <button mat-icon-button matTooltip="Rafraîchir" (click)="loadConversations()" [disabled]="loadingConversations">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+
+    <form class="new-conversation" [formGroup]="newConversationForm" (ngSubmit)="createConversation()">
+      <mat-form-field appearance="outline" class="participant-field">
+        <mat-label>Ajouter un patient</mat-label>
+        <input matInput formControlName="participantName" placeholder="Nom du patient" />
+        <mat-error *ngIf="newConversationForm.get('participantName')?.hasError('required')">
+          Le nom du patient est requis
+        </mat-error>
+        <mat-error *ngIf="newConversationForm.get('participantName')?.hasError('minlength')">
+          Entrez au moins 2 caractères
+        </mat-error>
+      </mat-form-field>
+      <button mat-flat-button color="primary" type="submit" [disabled]="creatingConversation || newConversationForm.invalid">
+        <mat-icon>add</mat-icon>
+        <span>Nouvelle conversation</span>
+      </button>
+    </form>
+
+    <mat-divider></mat-divider>
+
+    <chat-conversation-list
+      [conversations]="conversations"
+      [currentUserId]="currentUser.id"
+      [loading]="loadingConversations"
+      [selectedConversationId]="selectedConversation?.id ?? null"
+      (selectConversation)="onConversationSelected($event)"
+    ></chat-conversation-list>
+  </mat-card>
+
+  <mat-card class="messages-panel" *ngIf="selectedConversation; else emptyState">
+    <div class="messages-header">
+      <div>
+        <h2>{{ selectedConversation | conversationTitle: currentUser.id }}</h2>
+        <p class="participants">
+          {{ selectedConversation.participants | conversationParticipants: currentUser.id }}
+        </p>
+      </div>
+      <div class="header-actions">
+        <button
+          mat-icon-button
+          matTooltip="Rafraîchir la conversation"
+          (click)="refreshConversation()"
+          [disabled]="loadingMessages"
+        >
+          <mat-icon>sync</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="messages-wrapper" *ngIf="!loadingMessages; else loadingMessagesTpl">
+      <chat-message-list [messages]="messages" [currentUserId]="currentUser.id"></chat-message-list>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <chat-message-input
+      [disabled]="sendingMessage"
+      (sendMessage)="onMessageSend($event)"
+    ></chat-message-input>
+  </mat-card>
+
+  <ng-template #emptyState>
+    <mat-card class="messages-panel empty">
+      <div class="empty-content">
+        <mat-icon>chat</mat-icon>
+        <h3>Sélectionnez une conversation</h3>
+        <p>Choisissez un patient dans la liste pour commencer à échanger.</p>
+      </div>
+    </mat-card>
+  </ng-template>
+
+  <ng-template #loadingMessagesTpl>
+    <div class="loading">
+      <mat-progress-spinner mode="indeterminate" diameter="48"></mat-progress-spinner>
+    </div>
+  </ng-template>
+</div>

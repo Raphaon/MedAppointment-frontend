@@ -120,6 +120,11 @@ export const routes: Routes = [
     data: { roles: [UserRole.ADMIN] }
   },
   {
+    path: 'chat',
+    loadComponent: () => import('./modules/chat/chat.component').then(m => m.ChatComponent),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'consultations',
     canActivate: [AuthGuard],
     data: { roles: [UserRole.DOCTOR] },

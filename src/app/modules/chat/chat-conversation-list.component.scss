@@ -1,0 +1,66 @@
+.conversation-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+mat-nav-list {
+  overflow-y: auto;
+}
+
+a.mat-mdc-list-item {
+  border-radius: 0.75rem;
+  margin: 0.25rem 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &.active {
+    background-color: rgba(33, 150, 243, 0.12);
+  }
+}
+
+.mat-mdc-list-item-title {
+  font-weight: 600;
+}
+
+.mat-mdc-list-item-line {
+  color: rgba(0, 0, 0, 0.54);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mat-mdc-list-item-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.date {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.badge {
+  background-color: #1976d2;
+  color: white;
+  border-radius: 999px;
+  padding: 0 0.4rem;
+  font-size: 0.75rem;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.empty {
+  text-align: center;
+  color: rgba(0, 0, 0, 0.54);
+  padding: 2rem 1rem;
+}
