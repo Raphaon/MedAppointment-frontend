@@ -1,4 +1,4 @@
-<ion-page class="mobile-doctor-home">
+<div class="mobile-doctor-home">
   <ion-header translucent="true">
     <ion-toolbar color="primary" class="main-toolbar">
       <ion-title>{{ greetingMessage }}, {{ doctorName }}</ion-title>
@@ -41,7 +41,10 @@
       <ion-card-content>
         <ion-list lines="none">
           <ion-item *ngFor="let entry of todaysSchedule">
-            <ion-icon slot="start" [name]="entry.type === 'Téléconsultation' ? 'videocam-outline' : 'business-outline'"></ion-icon>
+            <ion-icon
+              slot="start"
+              [name]="entry.type === 'Téléconsultation' ? 'videocam-outline' : 'business-outline'"
+            ></ion-icon>
             <ion-label>
               <h3>{{ entry.patient }}</h3>
               <p>{{ entry.time }} • {{ entry.type }}</p>
@@ -75,4 +78,4 @@
       </ion-card-content>
     </ion-card>
   </ion-content>
-</ion-page>
+</div>
