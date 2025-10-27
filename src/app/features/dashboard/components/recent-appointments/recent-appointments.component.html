@@ -1,0 +1,38 @@
+<section class="appointments app-surface">
+  <header class="appointments__header">
+    <div>
+      <p class="appointments__title">{{ title }}</p>
+      <p class="appointments__subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+    </div>
+  </header>
+
+  <ng-container *ngIf="appointments.length; else empty">
+    <ul class="appointments__list">
+      <li *ngFor="let appointment of appointments" class="appointments__item shadow-hover">
+        <div class="appointments__date" aria-hidden="true">
+          <span class="day">{{ appointment.day }}</span>
+          <span class="month">{{ appointment.month }}</span>
+        </div>
+        <div class="appointments__content">
+          <div class="appointments__line">
+            <p class="title">{{ appointment.title }}</p>
+            <span class="time">{{ appointment.time }}</span>
+          </div>
+          <p class="subtitle">{{ appointment.subtitle }}</p>
+          <p class="context" *ngIf="appointment.context">{{ appointment.context }}</p>
+        </div>
+        <div class="appointments__status">
+          <span class="status-emoji" aria-hidden="true">{{ appointment.statusEmoji }}</span>
+          <span class="status-badge" [ngClass]="appointment.statusTone">{{ appointment.statusLabel }}</span>
+        </div>
+      </li>
+    </ul>
+  </ng-container>
+
+  <ng-template #empty>
+    <div class="appointments__empty">
+      <span>✨</span>
+      <p>{{ emptyState }}</p>
+    </div>
+  </ng-template>
+</section>

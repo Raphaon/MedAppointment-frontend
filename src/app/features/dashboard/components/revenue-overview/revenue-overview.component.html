@@ -1,0 +1,47 @@
+<section class="revenue app-surface" *ngIf="data">
+  <header class="revenue__header">
+    <div>
+      <p class="revenue__title">Performance financière</p>
+      <p class="revenue__subtitle">{{ data.periodLabel }}</p>
+    </div>
+    <div class="revenue__figures">
+      <span class="total">{{ data.totalFormatted }}</span>
+      <span class="delta" [class.positive]="data.deltaPositive" [class.negative]="!data.deltaPositive">
+        {{ data.deltaFormatted }}
+      </span>
+      <span class="projection" *ngIf="data.projection">{{ data.projection }}</span>
+    </div>
+  </header>
+
+  <div class="revenue__content">
+    <div class="revenue__sparkline">
+      <svg viewBox="0 0 100 40" role="img" aria-hidden="true">
+        <defs>
+          <linearGradient id="revenueGradient" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="0.32"></stop>
+            <stop offset="100%" stop-color="var(--color-primary)" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+        <path class="sparkline-fill" [attr.d]="sparklineFill" fill="url(#revenueGradient)"></path>
+        <path class="sparkline-path" [attr.d]="sparklinePath"></path>
+      </svg>
+      <div class="revenue__labels">
+        <span *ngFor="let label of data.timelineLabels">{{ label }}</span>
+      </div>
+    </div>
+    <div class="revenue__breakdown">
+      <p class="breakdown-title">Top spécialités</p>
+      <ul>
+        <li *ngFor="let item of data.breakdown">
+          <div class="label">
+            <span>{{ item.label }}</span>
+            <span class="value">{{ item.valueFormatted }}</span>
+          </div>
+          <div class="progress">
+            <div class="bar" [style.width.%]="item.percentage" aria-hidden="true"></div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>

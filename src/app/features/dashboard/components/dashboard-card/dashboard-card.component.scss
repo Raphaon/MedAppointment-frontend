@@ -1,0 +1,110 @@
+.dashboard-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  background-size: cover;
+  background-repeat: no-repeat;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 180px;
+}
+
+.dashboard-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(0px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.72));
+  z-index: -1;
+}
+
+.dashboard-card__header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.dashboard-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(45, 156, 219, 0.12);
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+}
+
+.dashboard-card__title {
+  margin: 0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-subtle);
+  font-weight: 600;
+}
+
+.dashboard-card__description {
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+  color: rgba(30, 30, 30, 0.72);
+}
+
+.dashboard-card__value {
+  margin: 0;
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-card__trend {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--color-subtle);
+}
+
+.dashboard-card__trend-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.dashboard-card__trend-value .bullet {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+
+.dashboard-card__trend-value.positive {
+  color: var(--color-success);
+}
+
+.dashboard-card__trend-value.positive .bullet {
+  background: var(--color-success);
+}
+
+.dashboard-card__trend-value.negative {
+  color: var(--color-danger);
+}
+
+.dashboard-card__trend-value.negative .bullet {
+  background: var(--color-danger);
+}
+
+.dashboard-card__trend-label {
+  color: rgba(30, 30, 30, 0.6);
+}
+
+@media (max-width: 768px) {
+  .dashboard-card {
+    padding: 1.5rem;
+  }
+}
