@@ -1,8 +1,9 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subscription, of, timer } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, finalize, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 export interface Notification {
   id: string;
@@ -44,13 +45,54 @@ export class NotificationService {
   public realtimeConnected$ = this.realtimeSubject.asObservable();
 
   private pollingSub?: Subscription;
-  private eventSource?: EventSource;
-  private reconnectTimer?: any;
+  private authSub?: Subscription;
 
-  constructor(private http: HttpClient, private ngZone: NgZone) {
+  constructor(private http: HttpClient, private authService: AuthService) {
     this.loadNotifications();
-    this.initializeServerSync();
-    this.initializeRealtimeChannel();
+    this.monitorAuthState();
+  }
+
+  private monitorAuthState(): void {
+    const hasToken = !!this.authService.getToken();
+    if (hasToken) {
+      this.startSynchronization();
+    }
+
+    this.authSub = this.authService.currentUser$.subscribe(() => {
+      const authenticated = !!this.authService.getToken();
+      if (authenticated) {
+        this.startSynchronization();
+      } else {
+        this.stopSynchronization({ clear: true });
+      }
+    });
+  }
+
+  private startSynchronization(): void {
+    if (this.pollingSub) {
+      return;
+    }
+
+    this.syncWithServer();
+    this.pollingSub = timer(this.syncIntervalMs, this.syncIntervalMs)
+      .subscribe(() => this.syncWithServer());
+    this.realtimeSubject.next(true);
+  }
+
+  private stopSynchronization(options: { clear?: boolean } = {}): void {
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+      this.pollingSub = undefined;
+    }
+
+    this.syncingSubject.next(false);
+    this.realtimeSubject.next(false);
+
+    if (options.clear) {
+      this.notificationsSubject.next([]);
+      localStorage.removeItem('notifications');
+      this.updateUnreadCount();
+    }
   }
 
   private loadNotifications(): void {
@@ -70,70 +112,8 @@ export class NotificationService {
     localStorage.setItem('notifications', JSON.stringify(notifications));
   }
 
-  private initializeServerSync(): void {
-    this.syncWithServer();
-    this.pollingSub = timer(this.syncIntervalMs, this.syncIntervalMs).subscribe(() => this.syncWithServer());
-  }
-
-  private initializeRealtimeChannel(): void {
-    if (typeof window === 'undefined' || !(window as any).EventSource) {
-      return;
-    }
-
-    const streamUrl = `${this.apiUrl}/stream`;
-    window.addEventListener('beforeunload', () => this.cleanupEventSource());
-
-    const connect = () => {
-      this.cleanupEventSource();
-      try {
-        this.eventSource = new EventSource(streamUrl, { withCredentials: true });
-        this.eventSource.onopen = () => this.ngZone.run(() => this.realtimeSubject.next(true));
-        this.eventSource.onerror = () => {
-          this.ngZone.run(() => this.realtimeSubject.next(false));
-          this.scheduleReconnect(connect);
-        };
-        this.eventSource.onmessage = (event: MessageEvent) => {
-          this.ngZone.run(() => {
-            try {
-              const payload = JSON.parse(event.data) as ServerNotificationDto;
-              this.upsertNotification(this.normalizeNotification(payload));
-            } catch (error) {
-              console.warn('Notification temps réel invalide', error);
-            }
-          });
-        };
-      } catch (error) {
-        console.warn('Impossible d\'initialiser le flux temps réel', error);
-        this.scheduleReconnect(connect);
-      }
-    };
-
-    connect();
-  }
-
-  private scheduleReconnect(connect: () => void): void {
-    if (this.reconnectTimer) {
-      return;
-    }
-    this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = undefined;
-      connect();
-    }, 15000);
-  }
-
-  private cleanupEventSource(): void {
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = undefined;
-    }
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = undefined;
-    }
-  }
-
   syncWithServer(): void {
-    if (this.syncingSubject.value) {
+    if (this.syncingSubject.value || !this.authService.getToken()) {
       return;
     }
 
@@ -153,6 +133,9 @@ export class NotificationService {
         }),
         catchError((error) => {
           console.warn('Échec de la synchronisation des notifications', error);
+          if (error?.status === 401) {
+            this.stopSynchronization();
+          }
           return of(null);
         }),
         finalize(() => this.syncingSubject.next(false))

@@ -11,6 +11,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserRole } from '../../../core/models';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-register',
@@ -191,16 +192,19 @@ export class RegisterComponent {
   onSubmit(): void {
     if (this.registerForm.valid) {
       this.loading = true;
-      this.authService.register(this.registerForm.value).subscribe({
-        next: () => {
-          this.snackBar.open('Inscription réussie !', 'Fermer', { duration: 3000 });
-          this.router.navigate(['/dashboard']);
-        },
-        error: (error) => {
-          this.loading = false;
-          this.snackBar.open(error.error?.error || 'Erreur lors de l\'inscription', 'Fermer', { duration: 5000 });
-        }
-      });
+      this.authService.register(this.registerForm.value)
+        .pipe(finalize(() => this.loading = false))
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Inscription réussie !', 'Fermer', { duration: 3000 });
+            this.router.navigate(['/dashboard']).catch(() => {
+              this.snackBar.open('Impossible d\'accéder au tableau de bord.', 'Fermer', { duration: 5000 });
+            });
+          },
+          error: (error) => {
+            this.snackBar.open(error.error?.error || 'Erreur lors de l\'inscription', 'Fermer', { duration: 5000 });
+          }
+        });
     }
   }
 }

@@ -15,11 +15,10 @@ import {
   IonLabel,
   IonList,
   IonListHeader,
-  IonPage,
   IonTitle,
   IonToolbar
 } from '@ionic/angular/standalone';
-import { DatePipe, NgFor, NgIf } from '@angular/common';
+import { CommonModule, NgFor, NgIf } from '@angular/common';
 
 interface UpcomingAppointment {
   id: string;
@@ -53,6 +52,7 @@ interface Reminder {
   selector: 'app-mobile-patient-home',
   standalone: true,
   imports: [
+    CommonModule,
     IonBadge,
     IonButton,
     IonButtons,
@@ -68,12 +68,10 @@ interface Reminder {
     IonLabel,
     IonList,
     IonListHeader,
-    IonPage,
     IonTitle,
     IonToolbar,
     NgFor,
-    NgIf,
-    DatePipe
+    NgIf
   ],
   templateUrl: './mobile-patient-home.component.html',
   styleUrls: ['./mobile-patient-home.component.scss'],

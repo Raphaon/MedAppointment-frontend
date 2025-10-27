@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -156,16 +157,19 @@ export class LoginComponent {
   onSubmit(): void {
     if (this.loginForm.valid) {
       this.loading = true;
-      this.authService.login(this.loginForm.value).subscribe({
-        next: () => {
-          this.snackBar.open('Connexion réussie !', 'Fermer', { duration: 3000 });
-          this.router.navigate(['/dashboard']);
-        },
-        error: (error) => {
-          this.loading = false;
-          this.snackBar.open(error.error?.error || 'Erreur de connexion', 'Fermer', { duration: 5000 });
-        }
-      });
+      this.authService.login(this.loginForm.value)
+        .pipe(finalize(() => this.loading = false))
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Connexion réussie !', 'Fermer', { duration: 3000 });
+            this.router.navigate(['/dashboard']).catch(() => {
+              this.snackBar.open('Impossible d\'accéder au tableau de bord.', 'Fermer', { duration: 5000 });
+            });
+          },
+          error: (error) => {
+            this.snackBar.open(error.error?.error || 'Erreur de connexion', 'Fermer', { duration: 5000 });
+          }
+        });
     }
   }
 }

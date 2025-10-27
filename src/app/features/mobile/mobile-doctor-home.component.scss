@@ -4,6 +4,10 @@
 }
 
 .mobile-doctor-home {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+
   ion-toolbar.main-toolbar {
     --background: linear-gradient(135deg, #1e88e5 0%, #00acc1 100%);
     --color: #ffffff;
@@ -17,6 +21,7 @@
   }
 
   ion-content {
+    flex: 1;
     --background: linear-gradient(180deg, #f0fbff 0%, #ffffff 45%);
   }
 
