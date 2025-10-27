@@ -48,6 +48,16 @@ mat-card-title {
   color: #667eea;
 }
 
+.info-row.hospitals {
+  align-items: flex-start;
+}
+
+.info-row.hospitals mat-chip-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .info-row.highlight {
   background-color: rgba(102, 126, 234, 0.08);
   padding: 12px;

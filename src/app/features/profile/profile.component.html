@@ -90,6 +90,40 @@
           </div>
         </mat-tab>
 
+        <mat-tab label="Profil Infirmier" *ngIf="currentUser.role === UserRole.NURSE && currentUser.nurseProfile">
+          <div class="tab-content">
+            <div class="info-section">
+              <h3>💉 Détails professionnels</h3>
+              <div class="info-row">
+                <mat-icon>badge</mat-icon>
+                <span>N° Licence: {{ currentUser.nurseProfile.licenseNumber }}</span>
+              </div>
+              <div class="info-row" *ngIf="currentUser.nurseProfile.yearsExperience !== undefined">
+                <mat-icon>calendar_today</mat-icon>
+                <span>{{ currentUser.nurseProfile.yearsExperience }} ans d'expérience</span>
+              </div>
+              <div class="info-row">
+                <mat-icon>local_hospital</mat-icon>
+                <span>Affectation(s): {{ getHospitalLabel() }}</span>
+              </div>
+              <div class="info-row" *ngIf="currentUser.nurseProfile.primaryDepartment">
+                <mat-icon>medical_information</mat-icon>
+                <span>Unité principale: {{ currentUser.nurseProfile.primaryDepartment }}</span>
+              </div>
+            </div>
+
+            <div class="info-section" *ngIf="currentUser.nurseProfile.skills">
+              <h3>🧰 Compétences</h3>
+              <p class="bio">{{ currentUser.nurseProfile.skills }}</p>
+            </div>
+
+            <div class="info-section" *ngIf="currentUser.nurseProfile.bio">
+              <h3>📝 À propos</h3>
+              <p class="bio">{{ currentUser.nurseProfile.bio }}</p>
+            </div>
+          </div>
+        </mat-tab>
+
         <mat-tab label="Profil Patient" *ngIf="currentUser.role === UserRole.PATIENT && currentUser.patientProfile">
           <div class="tab-content">
             <div class="info-section">
@@ -134,6 +168,13 @@
               *ngIf="currentUser?.role === UserRole.PATIENT">
         <mat-icon>edit</mat-icon>
         {{ currentUser?.patientProfile ? 'Modifier' : 'Créer' }} mon profil patient
+      </button>
+
+      <button mat-raised-button color="accent"
+              routerLink="/profile/edit-nurse"
+              *ngIf="currentUser?.role === UserRole.NURSE">
+        <mat-icon>edit</mat-icon>
+        {{ currentUser?.nurseProfile ? 'Modifier' : 'Créer' }} mon profil infirmier
       </button>
     </mat-card-actions>
   </mat-card>

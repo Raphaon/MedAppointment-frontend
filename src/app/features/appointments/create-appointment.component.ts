@@ -19,7 +19,15 @@ import { Subscription, take } from 'rxjs';
 import { AppointmentService } from '@app/core/services/appointment.service';
 import { DoctorService } from '@app/core/services/doctor.service';
 import { AuthService } from '@app/core/services/auth.service';
-import { Appointment, AppointmentStatus, CreateAppointmentDto, DoctorProfile, MedicalSpecialty } from '@app/core/models';
+import {
+  Appointment,
+  AppointmentStatus,
+  CreateAppointmentDto,
+  DoctorProfile,
+  HospitalDepartment,
+  HospitalSummary,
+  MedicalSpecialty
+} from '@app/core/models';
 import { getMedicalSpecialtyLabel } from '@app/shared/constants/medical.constants';
 
 @Component({
@@ -51,6 +59,8 @@ export class CreateAppointmentComponent implements OnInit, OnDestroy {
   appointmentForm: FormGroup;
   doctors: DoctorProfile[] = [];
   selectedDoctor: DoctorProfile | null = null;
+  hospitalOptions: HospitalSummary[] = [];
+  departmentOptions: HospitalDepartment[] = [];
   hours: number[] = Array.from({ length: 11 }, (_, index) => index + 8);
   minDate: Date = new Date();
   slotStatus: 'idle' | 'checking' | 'available' | 'unavailable' | 'error' = 'idle';
@@ -73,6 +83,8 @@ export class CreateAppointmentComponent implements OnInit, OnDestroy {
   ) {
     this.appointmentForm = this.fb.group({
       doctorId: ['', Validators.required],
+      hospitalId: [''],
+      departmentId: [''],
       appointmentDate: [null, Validators.required],
       hour: ['08', Validators.required],
       minute: ['00', Validators.required],
@@ -101,6 +113,7 @@ export class CreateAppointmentComponent implements OnInit, OnDestroy {
         if (doctorId) {
           this.appointmentForm.patchValue({ doctorId });
           this.updateSelectedDoctor(doctorId);
+          this.resetHospitalSelection();
           this.checkSlotAvailability();
         }
       });
@@ -117,6 +130,12 @@ export class CreateAppointmentComponent implements OnInit, OnDestroy {
   onDoctorChange(event: MatSelectChange): void {
     const doctorId = event.value as string;
     this.updateSelectedDoctor(doctorId);
+    this.resetHospitalSelection();
+    this.checkSlotAvailability();
+  }
+
+  onHospitalChange(): void {
+    this.filterDepartments();
     this.checkSlotAvailability();
   }
 
@@ -149,7 +168,7 @@ export class CreateAppointmentComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const { doctorId, appointmentDate, hour, minute, duration, reason, notes } = this.appointmentForm.value;
+    const { doctorId, hospitalId, departmentId, appointmentDate, hour, minute, duration, reason, notes } = this.appointmentForm.value;
     const date = new Date(appointmentDate);
     date.setHours(parseInt(hour, 10), parseInt(minute, 10), 0, 0);
 
@@ -164,7 +183,9 @@ export class CreateAppointmentComponent implements OnInit, OnDestroy {
       appointmentDate: date.toISOString(),
       duration: Number(duration),
       reason: reason.trim(),
-      notes: notes?.trim() || undefined
+      notes: notes?.trim() || undefined,
+      hospitalId: hospitalId || undefined,
+      departmentId: departmentId || undefined
     };
 
     this.loading = true;
@@ -210,6 +231,38 @@ export class CreateAppointmentComponent implements OnInit, OnDestroy {
 
   private updateSelectedDoctor(doctorId: string): void {
     this.selectedDoctor = this.doctors.find((doctor) => doctor.userId === doctorId) ?? null;
+    this.hospitalOptions = this.selectedDoctor?.hospitals ?? [];
+    this.departmentOptions = this.selectedDoctor?.departments ?? [];
+    this.filterDepartments();
+  }
+
+  private resetHospitalSelection(): void {
+    this.hospitalOptions = this.selectedDoctor?.hospitals ?? [];
+    this.departmentOptions = this.selectedDoctor?.departments ?? [];
+    const defaultHospitalId = this.hospitalOptions.length === 1 ? this.hospitalOptions[0].id : '';
+    this.appointmentForm.patchValue({ hospitalId: defaultHospitalId, departmentId: '' }, { emitEvent: false });
+    this.filterDepartments();
+    if (defaultHospitalId && this.departmentOptions.length === 1) {
+      this.appointmentForm.patchValue({ departmentId: this.departmentOptions[0].id }, { emitEvent: false });
+    }
+  }
+
+  private filterDepartments(): void {
+    const selectedHospitalId = this.appointmentForm.get('hospitalId')?.value as string | null;
+
+    if (!selectedHospitalId) {
+      this.departmentOptions = this.selectedDoctor?.departments ?? [];
+      return;
+    }
+
+    this.departmentOptions = (this.selectedDoctor?.departments ?? []).filter(
+      (department) => (department.hospitalId ?? '') === selectedHospitalId
+    );
+
+    const selectedDepartmentId = this.appointmentForm.get('departmentId')?.value as string | null;
+    if (selectedDepartmentId && !this.departmentOptions.some((department) => department.id === selectedDepartmentId)) {
+      this.appointmentForm.patchValue({ departmentId: '' }, { emitEvent: false });
+    }
   }
 
   private watchAvailabilityTriggers(): void {
@@ -226,6 +279,20 @@ export class CreateAppointmentComponent implements OnInit, OnDestroy {
     this.appointmentForm.statusChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.updateSubmitState());
+
+    this.appointmentForm
+      .get('hospitalId')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.filterDepartments();
+      });
+
+    this.appointmentForm
+      .get('departmentId')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.updateSubmitState();
+      });
   }
 
   private checkSlotAvailability(): void {

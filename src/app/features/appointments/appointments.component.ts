@@ -80,6 +80,7 @@ export class AppointmentsComponent implements OnInit, AfterViewInit {
     'appointmentDate',
     'doctor',
     'patient',
+    'location',
     'reason',
     'status',
     'duration',
@@ -170,11 +171,12 @@ export class AppointmentsComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const headers = ['Date', 'Médecin', 'Patient', 'Motif', 'Statut', 'Durée'];
+    const headers = ['Date', 'Médecin', 'Patient', 'Établissement', 'Motif', 'Statut', 'Durée'];
     const rows = this.dataSource.data.map((appointment) => [
       this.formatDate(appointment.appointmentDate),
       `Dr. ${appointment.doctor?.firstName ?? ''} ${appointment.doctor?.lastName ?? ''}`.trim(),
       `${appointment.patient?.firstName ?? ''} ${appointment.patient?.lastName ?? ''}`.trim(),
+      this.getLocationLabel(appointment),
       appointment.reason,
       this.getStatusLabel(appointment.status),
       `${appointment.duration ?? 30} min`
@@ -224,6 +226,10 @@ export class AppointmentsComponent implements OnInit, AfterViewInit {
       });
   }
 
+  viewAppointment(appointment: Appointment): void {
+    this.router.navigate(['/appointments', appointment.id]);
+  }
+
   getStatusLabel(status: AppointmentStatus): string {
     const labels: Record<AppointmentStatus, string> = {
       [AppointmentStatus.PENDING]: 'En attente',
@@ -233,6 +239,24 @@ export class AppointmentsComponent implements OnInit, AfterViewInit {
       [AppointmentStatus.NO_SHOW]: 'Absent'
     };
     return labels[status];
+  }
+
+  getLocationLabel(appointment: Appointment): string {
+    if (appointment.hospital?.name) {
+      const hospitalLabel = appointment.hospital.city
+        ? `${appointment.hospital.name} (${appointment.hospital.city})`
+        : appointment.hospital.name;
+      if (appointment.department?.name) {
+        return `${hospitalLabel} • ${appointment.department.name}`;
+      }
+      return hospitalLabel;
+    }
+
+    if (appointment.hospitalId) {
+      return `Hôpital #${appointment.hospitalId}`;
+    }
+
+    return 'Non spécifié';
   }
 
   getStatusColor(status: AppointmentStatus): 'primary' | 'accent' | 'warn' | undefined {

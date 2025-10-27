@@ -96,6 +96,31 @@ export class DashboardState {
       ];
     }
 
+    if (currentUser.role === UserRole.NURSE) {
+      return [
+        {
+          title: 'Visites du jour',
+          value: appointments.filter(appointment => this.isToday(appointment.appointmentDate)).length,
+          icon: 'today',
+          color: '#4caf50',
+          route: '/appointments'
+        },
+        {
+          title: 'Rendez-vous à venir',
+          value: appointments.filter(appointment => new Date(appointment.appointmentDate) > new Date()).length,
+          icon: 'event',
+          color: '#2196f3',
+          route: '/appointments'
+        },
+        {
+          title: 'Constantes saisies',
+          value: appointments.filter(appointment => (appointment.vitals?.length ?? 0) > 0).length,
+          icon: 'monitor_heart',
+          color: '#ff9800'
+        }
+      ];
+    }
+
     return [
       {
         title: 'Total rendez-vous',

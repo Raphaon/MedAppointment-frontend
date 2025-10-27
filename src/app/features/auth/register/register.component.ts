@@ -76,6 +76,7 @@ import { UserRole } from '../../../core/models';
               <mat-select formControlName="role">
                 <mat-option [value]="UserRole.PATIENT">Patient</mat-option>
                 <mat-option [value]="UserRole.DOCTOR">Médecin</mat-option>
+                <mat-option [value]="UserRole.NURSE">Infirmier / Infirmière</mat-option>
               </mat-select>
             </mat-form-field>
 

@@ -44,6 +44,26 @@
             </mat-form-field>
 
             <mat-form-field class="full-width" appearance="outline">
+              <mat-label>Hôpitaux d'exercice</mat-label>
+              <mat-select formControlName="hospitalIds" multiple>
+                <mat-option *ngFor="let hospital of hospitals" [value]="hospital.id">
+                  {{ getHospitalLabel(hospital) }}
+                </mat-option>
+              </mat-select>
+              <mat-hint>Sélectionnez les établissements où vous consultez</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field class="full-width" appearance="outline" *ngIf="departments.length > 0">
+              <mat-label>Services / unités</mat-label>
+              <mat-select formControlName="departmentIds" multiple>
+                <mat-option *ngFor="let department of departments" [value]="department.id">
+                  {{ getDepartmentLabel(department) }}
+                </mat-option>
+              </mat-select>
+              <mat-hint>Affinez votre disponibilité par service hospitalier</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field class="full-width" appearance="outline">
               <mat-label>Biographie professionnelle</mat-label>
               <textarea matInput formControlName="bio" rows="4"
                         placeholder="Présentez votre parcours et vos compétences..."></textarea>

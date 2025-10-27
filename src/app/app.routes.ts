@@ -47,6 +47,10 @@ export const routes: Routes = [
       {
         path: 'create',
         loadComponent: () => import('./features/appointments/create-appointment.component').then(m => m.CreateAppointmentComponent)
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./features/appointments/appointment-detail.component').then(m => m.AppointmentDetailComponent)
       }
     ]
   },
@@ -77,6 +81,35 @@ export const routes: Routes = [
         path: 'edit-patient',
         loadComponent: () => import('./features/profile/patient-profile-form.component').then(m => m.PatientProfileFormComponent),
         data: { roles: [UserRole.PATIENT] }
+      },
+      {
+        path: 'edit-nurse',
+        loadComponent: () => import('./features/profile/nurse-profile-form.component').then(m => m.NurseProfileFormComponent),
+        data: { roles: [UserRole.NURSE] }
+      }
+    ]
+  },
+  {
+    path: 'hospitals',
+    canActivate: [AuthGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./features/hospitals/hospital-list.component').then(m => m.HospitalListComponent)
+      },
+      {
+        path: 'create',
+        loadComponent: () => import('./features/hospitals/hospital-form.component').then(m => m.HospitalFormComponent),
+        data: { roles: [UserRole.ADMIN] }
+      },
+      {
+        path: ':id/edit',
+        loadComponent: () => import('./features/hospitals/hospital-form.component').then(m => m.HospitalFormComponent),
+        data: { roles: [UserRole.ADMIN] }
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./features/hospitals/hospital-detail.component').then(m => m.HospitalDetailComponent)
       }
     ]
   },

@@ -78,6 +78,8 @@ export class UsersComponent implements OnInit {
         return 'Administrateur';
       case UserRole.DOCTOR:
         return 'Médecin';
+      case UserRole.NURSE:
+        return 'Infirmier(ère)';
       case UserRole.PATIENT:
         return 'Patient';
       default:
@@ -91,6 +93,8 @@ export class UsersComponent implements OnInit {
         return 'security';
       case UserRole.DOCTOR:
         return 'local_hospital';
+      case UserRole.NURSE:
+        return 'vaccines';
       case UserRole.PATIENT:
         return 'person';
       default:
@@ -104,8 +108,10 @@ export class UsersComponent implements OnInit {
         return 'warn';
       case UserRole.DOCTOR:
         return 'accent';
-      case UserRole.PATIENT:
+      case UserRole.NURSE:
         return 'primary';
+      case UserRole.PATIENT:
+        return 'accent';
       default:
         return undefined;
     }
