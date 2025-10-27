@@ -9,7 +9,7 @@ export interface RecentAppointmentItem {
   title: string;
   subtitle: string;
   statusLabel: string;
-  statusTone: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
+  statusTone: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'noShow';
   statusEmoji: string;
   context?: string;
 }

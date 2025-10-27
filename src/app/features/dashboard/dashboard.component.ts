@@ -609,7 +609,7 @@ export class DashboardComponent {
       case AppointmentStatus.COMPLETED:
         return 'completed';
       case AppointmentStatus.NO_SHOW:
-        return 'no-show';
+        return 'noShow';
       default:
         return 'pending';
     }
