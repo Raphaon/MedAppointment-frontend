@@ -101,11 +101,27 @@ export const routes: Routes = [
     ]
   },
   {
-    path: 'medical-records/:patientId',
+    path: 'mobile',
     canActivate: [AuthGuard],
-    data: { roles: [UserRole.DOCTOR, UserRole.ADMIN] },
-    loadComponent: () =>
-      import('./modules/medical-record/medical-record.component').then((m) => m.MedicalRecordComponent)
+    children: [
+      {
+        path: 'patient',
+        loadComponent: () =>
+          import('./features/mobile/mobile-patient-home.component').then(
+            (m) => m.MobilePatientHomeComponent
+          ),
+        data: { roles: [UserRole.PATIENT] }
+      },
+      {
+        path: 'doctor',
+        loadComponent: () =>
+          import('./features/mobile/mobile-doctor-home.component').then(
+            (m) => m.MobileDoctorHomeComponent
+          ),
+        data: { roles: [UserRole.DOCTOR] }
+      },
+      { path: '', redirectTo: 'patient', pathMatch: 'full' }
+    ]
   },
   { path: '**', redirectTo: '/dashboard' }
 ];
