@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.mobile-home {
+  ion-toolbar.main-toolbar {
+    --background: linear-gradient(135deg, #3f51b5 0%, #667eea 100%);
+    --color: #fff;
+    --border-width: 0;
+    box-shadow: none;
+  }
+
+  ion-toolbar.sub-toolbar {
+    --background: #f7f8ff;
+    --color: #4254b6;
+    font-weight: 500;
+  }
+
+  ion-content {
+    --background: linear-gradient(180deg, #f7f8ff 0%, #ffffff 35%);
+  }
+
+  .quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    ion-chip {
+      margin: 0;
+      --background: rgba(63, 81, 181, 0.08);
+      --color: #3f51b5;
+      --border-color: rgba(63, 81, 181, 0.24);
+    }
+  }
+
+  .next-appointment {
+    border-radius: 20px;
+    box-shadow: 0 16px 32px rgba(102, 126, 234, 0.18);
+    margin-bottom: 1.5rem;
+
+    ion-card-title {
+      font-size: 1.2rem;
+    }
+
+    .appointment-highlight {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+
+      .appointment-time h3 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #2b3562;
+      }
+
+      .appointment-time p {
+        margin: 0.35rem 0 0;
+        color: #5f6a98;
+        font-weight: 500;
+      }
+
+      .appointment-doctor {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: rgba(63, 81, 181, 0.08);
+        border-radius: 16px;
+        padding: 0.75rem;
+
+        ion-icon {
+          font-size: 2.3rem;
+          color: #3f51b5;
+        }
+
+        span {
+          display: block;
+          font-weight: 600;
+          color: #2b3562;
+        }
+
+        small {
+          display: block;
+          color: #6b76a8;
+        }
+      }
+    }
+  }
+
+  .health-tracking,
+  .reminders {
+    border-radius: 18px;
+    margin-bottom: 1.5rem;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+
+    ion-list-header {
+      font-weight: 600;
+      color: #2b3562;
+    }
+
+    ion-item {
+      --min-height: 64px;
+      --background: transparent;
+
+      ion-icon {
+        font-size: 1.5rem;
+        color: #3f51b5;
+      }
+
+      ion-label h3 {
+        margin: 0;
+        font-weight: 600;
+        color: #2b3562;
+      }
+
+      ion-label p {
+        margin: 0.25rem 0 0;
+        color: #6b76a8;
+        font-size: 0.85rem;
+      }
+    }
+  }
+}
