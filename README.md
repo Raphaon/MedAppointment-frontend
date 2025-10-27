@@ -1,128 +1,92 @@
 # 🏥 MedAppointment Frontend
 
-Frontend Angular pour l'application de gestion de rendez-vous médicaux.
+Application Angular 18 pour la gestion des rendez-vous médicaux et du suivi patient multi-rôles (administrateur, médecin, patient, infirmier). L'interface combine Angular Material pour la version bureau et des composants Ionic pour l'expérience mobile.
+
+## 📚 Table des matières
+- [Aperçu](#-aperçu)
+- [Architecture en bref](#-architecture-en-bref)
+- [Démarrage rapide](#-démarrage-rapide)
+- [Configuration de l'environnement](#-configuration-de-lenvironnement)
+- [Scripts npm](#-scripts-npm)
+- [Tests et qualité](#-tests-et-qualité)
+- [Structure du projet](#-structure-du-projet)
+- [Documentation](#-documentation)
+- [Problèmes connus](#-problèmes-connus)
+- [Licence](#-licence)
+
+## ✨ Aperçu
+- Authentification complète (inscription, connexion, réinitialisation du mot de passe) avec contrôle des rôles.
+- Tableaux de bord dédiés par profil utilisateur et parcours mobile optimisé.
+- Gestion avancée des rendez-vous : filtres, annulation, consultation, prescriptions, constantes vitales.
+- Module de dossier médical pour stocker et consulter les documents patients.
+- Notifications synchronisées via polling sécurisé et persistance locale.
+
+## 🏗️ Architecture en bref
+- Composants **standalone** chargés à la demande par `app.routes.ts`.
+- Services partagés (`AuthService`, `NotificationService`, `AppointmentService`, etc.) injectables en `providedIn: 'root'`.
+- Flux réactifs via `BehaviorSubject` pour l'utilisateur courant et les notifications.
+- Modules fonctionnels regroupés par domaine (`features/`, `modules/`, `shared/`). Un rapport technique détaillé est disponible dans la section [Documentation](#-documentation).
 
 ## 🚀 Démarrage rapide
-
 ### Prérequis
-- Node.js v18 ou supérieur
-- npm ou yarn
-- Backend MedAppointment lancé sur http://localhost:4000
+- Node.js **18+**
+- npm (ou yarn)
+- Backend MedAppointment disponible sur `http://localhost:4000`
 
-### Installation
-
+### Installation & lancement
 ```bash
-# Installer les dépendances
 npm install
-
-# Lancer l'application en mode développement
 npm start
 ```
+L'application est accessible sur [http://localhost:4200](http://localhost:4200).
 
-L'application sera disponible sur `http://localhost:4200`
-
-## 📦 Fonctionnalités
-
-- ✅ Authentification (Login / Register)
-- ✅ Dashboard selon les rôles (Admin, Doctor, Patient)
-- ✅ Gestion des rendez-vous
-- ✅ Interface moderne avec Angular Material
-- ✅ Guards pour sécuriser les routes
-- ✅ Intercepteurs HTTP automatiques
-
-## 🏗️ Structure du projet
-
+## 🌐 Configuration de l'environnement
+Les URL de l'API sont définies dans `src/environments/environment*.ts`. Par défaut :
+```ts
+apiBaseUrl: 'http://localhost:4000/api'
 ```
-src/
-├── app/
-│   ├── core/                 # Services, guards, interceptors, models
-│   │   ├── guards/          # AuthGuard
-│   │   ├── interceptors/    # HTTP Interceptor (auto-ajout token)
-│   │   ├── services/        # Services API
-│   │   └── models/          # Interfaces TypeScript
-│   ├── features/            # Modules fonctionnels
-│   │   ├── auth/           # Login, Register
-│   │   ├── dashboard/      # Tableau de bord
-│   │   └── appointments/   # Gestion rendez-vous
-│   ├── app.component.ts
-│   ├── app.routes.ts       # Configuration des routes
-│   └── app.config.ts       # Configuration de l'app
-└── assets/                  # Images, fonts...
-```
+Ajustez ce paramètre selon votre environnement (staging, production, etc.).
 
-## 🔐 Comptes de test
-
-### Admin
-- Email: `admin@medappointment.com`
-- Password: `Admin123!`
-
-### Médecin
-- Email: `dr.dupont@hospital.com`
-- Password: `doctor123`
-
-### Patient
-- Email: `marie.martin@email.com`
-- Password: `patient123`
-
-## 🎨 Technologies utilisées
-
-- **Angular 18** - Framework
-- **Angular Material** - UI Components
-- **RxJS** - Reactive programming
-- **TypeScript** - Langage
-- **SCSS** - Styles
-
-## 📝 Scripts disponibles
-
+## 🛠️ Scripts npm
 ```bash
-npm start          # Lancer en mode développement
-npm run build      # Compiler pour production
-npm run watch      # Mode watch
-npm test           # Lancer les tests
+npm start          # Lancer l'application en développement
+npm run build      # Compiler pour la production
+npm run watch      # Build continu en mode développement
+npm test           # Lancer la suite de tests unitaires (Karma/Jasmine)
 ```
 
-## 🧪 Tests en local
-
-1. **Installer les dépendances**
-   ```bash
-   npm install
-   ```
-
-2. **(Optionnel) Vérifier que le backend est lancé** pour les scénarios end-to-end manuels : `npm start` dans le backend.
-
-3. **Lancer la suite de tests unitaires** en mode headless pour éviter l'ouverture du navigateur :
+## ✅ Tests et qualité
+1. Installer les dépendances (`npm install`).
+2. Lancer les tests unitaires en mode headless :
    ```bash
    npm run test -- --watch=false --browsers=ChromeHeadless
    ```
-   > Assurez-vous d'avoir Google Chrome ou Chromium installé localement. Sur Linux, vous pouvez exporter la variable `CHROME_BIN` vers le binaire de Chrome/Chromium si nécessaire.
-
-4. **Valider le build de production** avant un commit important :
+3. Vérifier le build de production avant publication :
    ```bash
    npm run build
    ```
+4. Compléter par des tests manuels : authentification, gestion des rendez-vous, notifications, dossier médical et parcours mobile.
 
-5. **Analyser les résultats**
-   - Les rapports Karma s'affichent dans le terminal.
-   - Pour réexécuter automatiquement les tests pendant le développement, utilisez `npm test` (mode watch par défaut).
+## 📦 Structure du projet
+```
+src/
+├── app/
+│   ├── app.routes.ts         # Définition du routage principal
+│   ├── core/                 # Services, guards, intercepteurs, modèles partagés
+│   ├── features/             # Composants standalone par domaine métier
+│   ├── modules/              # Modules riches (ex. dossier médical)
+│   └── shared/               # Composants et constantes réutilisables
+└── environments/             # Configuration API par environnement
+```
 
-## 🌐 Configuration de l'API
+## 📖 Documentation
+- [Rapport technique complet](docs/PROJECT_REPORT.md)
+- Modèles et énumérations : `src/app/core/models/index.ts`
+- Routage principal : `src/app/app.routes.ts`
 
-L'URL de l'API backend est configurée dans les services :
-- `src/app/core/services/auth.service.ts`
-- `src/app/core/services/appointment.service.ts`
-- `src/app/core/services/doctor.service.ts`
-
-Par défaut: `http://localhost:4000/api`
-
-## 🚧 Développement
-
-Pour ajouter de nouvelles fonctionnalités :
-
-1. Créer un nouveau composant dans `features/`
-2. Ajouter la route dans `app.routes.ts`
-3. Ajouter le guard si nécessaire
-4. Créer le service correspondant si besoin
+## ⚠️ Problèmes connus
+- Les vues mobiles utilisent les composants Ionic standalone. Veillez à installer et configurer les packages Ionic requis (styles inclus) avant d'exécuter `ng serve` en production.
+- Le canal de notifications fonctionne par polling HTTP. Prévoir une évolution vers SSE ou WebSocket pour du temps réel complet.
 
 ## 📄 Licence
-
 MIT
